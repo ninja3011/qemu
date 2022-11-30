@@ -625,4 +625,7 @@ uint64_t qemu_plugin_end_code(void);
  */
 uint64_t qemu_plugin_entry_code(void);
 
+
+bool     qemu_plugin_is_userland(const struct qemu_plugin_insn *insn);
+uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn);
 #endif /* QEMU_QEMU_PLUGIN_H */
