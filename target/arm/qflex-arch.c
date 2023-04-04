@@ -53,10 +53,10 @@ uint64_t QFLEX_GET_ARCH(reg)(CPUState *cs, int reg_index) {
     return ENV(cs)->xregs[reg_index];
 }
 
-// void QFLEX_SET_ARCH(reg)(CPUState *cs, int reg_index, uint64_t value) {
-//     assert(reg_index < 32);
-//     ENV(cs)->xregs[reg_index] = value;
-// }
+void QFLEX_SET_ARCH(reg)(CPUState *cs, int reg_index, uint64_t value) {
+    assert(reg_index < 32);
+    ENV(cs)->xregs[reg_index] = value;
+}
 
 void QFLEX_GET_ARCH(log_inst)(CPUState *cs) {
     FILE* logfile = qemu_log_trylock();
@@ -104,10 +104,22 @@ void qflex_dump_archstate_log(CPUState *cpu, char **buf_ptr) {
     }
 }
 
+uint32_t QFLEX_GET_ARCH(pstate)(CPUState *cs) {
+    return pstate_read(ENV(cs));
+}
+
 uint32_t QFLEX_GET_ARCH(nzcv)(CPUState *cs) {
     CPUARMState *env = cs->env_ptr;
     uint32_t nzcv = (pstate_read(env) >> 28) & 0xF;
     return nzcv;
+}
+
+uint64_t QFLEX_GET_ARCH(sp_el)(CPUState *cs, int el) {
+    return ENV(cs)->sp_el[el];
+}
+
+uint64_t QFLEX_GET_ARCH(sctlr)(CPUState *cs, int el) {
+    return ENV(cs)->cp15.sctlr_el[el];
 }
 
 uint64_t QFLEX_GET_ARCH(sysreg)(CPUState *cs, uint8_t op0, uint8_t op1,
