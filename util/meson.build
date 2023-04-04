@@ -104,3 +104,10 @@ if have_block
   endif
   util_ss.add(when: 'CONFIG_LINUX', if_true: files('vfio-helpers.c'))
 endif
+
+if 'CONFIG_QFLEX' in config_host
+  qflex_ss = ss.source_set()
+  subdir('qflex')
+  util_ss.add_all(qflex_ss)
+  util_ss.add(files('circular-buffer.c'))
+endif

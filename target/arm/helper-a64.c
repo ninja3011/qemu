@@ -35,6 +35,17 @@
 #include "fpu/softfloat.h"
 #include <zlib.h> /* For crc32 */
 
+#ifdef CONFIG_QFLEX
+#include "qflex/qflex-traces.h"
+#define GEN_HELPER(func)  glue(gen_helper_, func)
+#define GEN_QFLEX_HELPER(cond, func) if(cond) func
+#else
+#define GEN_HELPER(func)
+#define GEN_QFLEX_HELPER(cond, func)
+#endif // CONFIG_QFLEX
+
+
+
 /* C2.4.7 Multiply and divide */
 /* special cases for 0 and LLONG_MIN are mandated by the standard */
 uint64_t HELPER(udiv64)(uint64_t num, uint64_t den)
@@ -1097,5 +1108,9 @@ void HELPER(dc_zva)(CPUARMState *env, uint64_t vaddr_in)
     }
 #endif
 
+	GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), HELPER(qflex_pre_mem)( 
+        env, vaddr, MMU_DATA_STORE, blocklen));
     memset(mem, 0, blocklen);
+    GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), HELPER(qflex_post_mem)(
+        env, vaddr, MMU_DATA_STORE, blocklen));
 }

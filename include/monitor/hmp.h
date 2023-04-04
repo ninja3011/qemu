@@ -144,4 +144,8 @@ void hmp_human_readable_text_helper(Monitor *mon,
                                     HumanReadableText *(*qmp_handler)(Error **));
 void hmp_info_stats(Monitor *mon, const QDict *qdict);
 
+#ifdef CONFIG_QFLEX
+#include "qflex/qflex-hmp.h"
+#endif
+
 #endif

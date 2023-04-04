@@ -55,6 +55,11 @@ arm_ss.add(when: 'TARGET_AARCH64', if_true: files(
   'translate-sme.c',
 ))
 
+arm_ss.add(when: 'CONFIG_QFLEX', if_true: files(
+  'qflex-arch.c',
+  'qflex-helper.c',
+))
+
 arm_softmmu_ss = ss.source_set()
 arm_softmmu_ss.add(files(
   'arch_dump.c',

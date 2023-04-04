@@ -4312,6 +4312,7 @@ TRANS_FEAT(UCVTF_dd, aa64_sve, gen_gvec_fpst_arg_zpz,
 void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
                  int len, int rn, int imm)
 {
+    assert(false); // TODO: DevteroFlex doesn't support this
     int len_align = QEMU_ALIGN_DOWN(len, 8);
     int len_remain = len % 8;
     int nparts = len / 8 + ctpop8(len_remain);
@@ -4412,6 +4413,7 @@ void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
 void gen_sve_str(DisasContext *s, TCGv_ptr base, int vofs,
                  int len, int rn, int imm)
 {
+    assert(false); // TODO: DevteroFlex doesn't support this
     int len_align = QEMU_ALIGN_DOWN(len, 8);
     int len_remain = len % 8;
     int nparts = len / 8 + ctpop8(len_remain);
@@ -4583,6 +4585,7 @@ static void do_mem_zpa(DisasContext *s, int zt, int pg, TCGv_i64 addr,
                        int dtype, uint32_t mte_n, bool is_write,
                        gen_helper_gvec_mem *fn)
 {
+    assert(false);
     unsigned vsz = vec_full_reg_size(s);
     TCGv_ptr t_pg;
     int desc = 0;
@@ -4988,6 +4991,7 @@ static bool trans_LDNF1_zpri(DisasContext *s, arg_rpri_load *a)
 
 static void do_ldrq(DisasContext *s, int zt, int pg, TCGv_i64 addr, int dtype)
 {
+    assert(false);
     unsigned vsz = vec_full_reg_size(s);
     TCGv_ptr t_pg;
     int poff;
@@ -5058,6 +5062,7 @@ static bool trans_LD1RQ_zpri(DisasContext *s, arg_rpri_load *a)
 
 static void do_ldro(DisasContext *s, int zt, int pg, TCGv_i64 addr, int dtype)
 {
+    assert(false);
     unsigned vsz = vec_full_reg_size(s);
     unsigned vsz_r32;
     TCGv_ptr t_pg;
@@ -5170,6 +5175,7 @@ static bool trans_LD1R_zpri(DisasContext *s, arg_rpri_load *a)
 
     over = gen_new_label();
 
+    assert(false);
     /* If the guarding predicate has no bits set, no load occurs.  */
     if (psz <= 8) {
         /* Reduce the pred_esz_masks value simply to reduce the

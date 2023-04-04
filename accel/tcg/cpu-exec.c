@@ -47,6 +47,11 @@
 #include "tb-context.h"
 #include "internal.h"
 
+#ifdef CONFIG_QFLEX
+#include "qflex/qflex.h"
+#include "qflex/qflex-arch.h"
+#endif
+
 /* -icount align implementation. */
 
 typedef struct SyncClocks {
@@ -758,6 +763,13 @@ static inline bool cpu_handle_interrupt(CPUState *cpu,
      */
     qatomic_mb_set(&cpu_neg(cpu)->icount_decr.u16.high, 0);
 
+#ifdef CONFIG_QFLEX
+    if (qflexState.exit_main_loop) {
+        cpu->exception_index = EXCP_QFLEX_EXIT;
+        qemu_log("QFLEX: Catched exit loop request.\n");
+        return true;
+    }
+#endif
     if (unlikely(qatomic_read(&cpu->interrupt_request))) {
         int interrupt_request;
         qemu_mutex_lock_iothread();
@@ -1040,6 +1052,10 @@ int cpu_exec(CPUState *cpu)
     cpu_exec_exit(cpu);
     rcu_read_unlock();
 
+    if (ret == EXCP_QFLEX_EXIT) {
+        qflex_log_mask(QFLEX_LOG_GENERAL, "QFLEX: Exiting cpu-exec.\n");
+    }
+
     return ret;
 }
 
@@ -1155,3 +1171,12 @@ HumanReadableText *qmp_x_query_profile(Error **errp)
 #endif
 
 #endif /* !CONFIG_USER_ONLY */
+
+#ifdef CONFIG_QFLEX
+void qflex_tb_flush(void) {
+    CPUState *cpu;
+    CPU_FOREACH(cpu) {
+        tb_flush(cpu);
+    }
+}
+#endif

@@ -135,6 +135,11 @@
 
 #include "config-host.h"
 
+#ifdef CONFIG_QFLEX
+#include "qflex/qflex.h"
+#include "qflex/qflex-config.h"
+#endif
+
 #define MAX_VIRTIO_CONSOLES 1
 
 typedef struct BlockdevOptionsQueueEntry {
@@ -2667,6 +2672,11 @@ void qemu_init(int argc, char **argv)
     qemu_add_opts(&qemu_semihosting_config_opts);
     qemu_add_opts(&qemu_fw_cfg_opts);
     qemu_add_opts(&qemu_action_opts);
+#ifdef CONFIG_QFLEX
+    qemu_add_opts(&qemu_qflex_opts);
+	qemu_add_opts(&qemu_qflex_gen_mem_trace_opts);
+#endif
+
     module_call_init(MODULE_INIT_OPTS);
 
     error_init(argv[0]);
@@ -3481,6 +3491,11 @@ void qemu_init(int argc, char **argv)
                 /* Nothing to be parsed here. Especially, do not error out below. */
                 break;
             default:
+#ifdef CONFIG_QFLEX
+                if (qflex_parse_opts(popt->index, optarg, &error_abort)) {
+                    break;
+                };
+#endif
                 if (os_parse_cmd_args(popt->index, optarg)) {
                     error_report("Option not supported in this build");
                     exit(1);

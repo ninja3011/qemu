@@ -1768,6 +1768,7 @@ ERST
         .cmd        = hmp_set_vcpu_dirty_limit,
     },
 
+
 SRST
 ``set_vcpu_dirty_limit``
   Set dirty page rate limit on virtual CPU, the information about all the
@@ -1814,4 +1815,100 @@ SRST
 ``dumpdtb`` *filename*
   Dump the FDT in dtb format to *filename*.
 ERST
+#endif
+
+#ifdef CONFIG_QFLEX
+
+    {
+        .name       = "qflex-log",
+        .args_type  = "items:s",
+        .params     = "item1[,...]",
+        .help       = "activate logging of the specified items of qflex",
+        .cmd        = hmp_qflex_log,
+    },
+
+SRST
+``qflex-log`` *item1*\ [,...]
+  Activate logging of the specified items.
+ERST
+
+    {
+        .name       = "qflex-singlestep-start",
+        .args_type  = "",
+        .params     = "",
+        .help       = "start singlestepping",
+        .cmd        = hmp_qflex_singlestep_start,
+    },
+
+SRST
+``qflex-singlestep-start``
+  Start singlestepping, change control flow to QFLEX
+ERST
+
+    {
+        .name       = "qflex-singlestep-stop",
+        .args_type  = "",
+        .params     = "",
+        .help       = "stop singlestepping",
+        .cmd        = hmp_qflex_singlestep_stop,
+    },
+
+SRST
+``qflex-singlestep-stop``
+  Stop singlestepping, change control flow to QFLEX
+ERST
+
+    {
+        .name       = "qflex-mem-trace-start",
+        .args_type  = "nb_insn:i,trace_type:i",
+        .params     = "nb_insn trace_type",
+        .help       = "start mem trace",
+        .cmd        = hmp_qflex_mem_trace_start,
+    },
+
+SRST
+``qflex-mem-trace-start`` *nb_insn* *trace_type*
+  Run mem trace for amount of *nb_insn* with trace generation type *trace_type*.
+ERST
+
+    {
+        .name       = "qflex-mem-trace-stop",
+        .args_type  = "",
+        .params     = "",
+        .help       = "stop mem trace",
+        .cmd        = hmp_qflex_mem_trace_stop,
+    },
+
+SRST
+``qflex-mem-trace-stop``
+  Stop mem trace.
+ERST
+
+    {
+        .name       = "qflex-mem-trace-end",
+        .args_type  = "",
+        .params     = "",
+        .help       = "end mem trace, reset stats",
+        .cmd        = hmp_qflex_mem_trace_start,
+    },
+
+SRST
+``qflex-mem-trace-end``
+  End mem trace by disabling and resetting stats.
+ERST
+
+    {
+        .name       = "qflex-mem-trace-log-stats",
+        .args_type  = "",
+        .params     = "",
+        .help       = "start mem trace",
+        .cmd        = hmp_qflex_mem_trace_log_stats,
+    },
+
+SRST
+``qflex-mem-trace-log-stats``
+  Prints mem-trace results.
+ERST
+
+
 #endif

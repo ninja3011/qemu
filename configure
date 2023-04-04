@@ -302,6 +302,13 @@ fdt="auto"
 tcg="auto"
 cfi="false"
 
+# 4. Detection partly done in configure
+xen=${default_feature:+disabled}
+######################
+# QFLEX
+qflex="no"
+######################
+
 # parse CC options second
 for opt do
   optarg=$(expr "x$opt" : 'x[^=]*=\(.*\)')
@@ -896,6 +903,14 @@ for opt do
   ;;
   --enable-jemalloc) meson_option_parse --enable-malloc=jemalloc jemalloc
   ;;
+######################
+# QFLEX
+######################
+  --disable-qflex) qflex="no"
+  ;;
+  --enable-qflex) qflex="yes"
+  ;;
+######################
   # everything else has the same name in configure and meson
   --*) meson_option_parse "$opt" "$optarg"
   ;;
@@ -1050,6 +1065,10 @@ cat << EOF
   safe-stack      SafeStack Stack Smash Protection. Depends on
                   clang/llvm >= 3.7 and requires coroutine backend ucontext.
 
+######################
+# QFLEX
+  qflex           support for QFlex
+######################
 NOTE: The object files are built at the place where configure is launched
 EOF
 exit 0
@@ -2238,6 +2257,15 @@ if test "$have_ubsan" = "yes"; then
 fi
 
 ##########################################
+# QFLEX
+if test $qflex = "yes" ; then
+  QEMU_CFLAGS="-DCONFIG_QFLEX $QEMU_CFLAGS"
+  libqflex=""
+fi
+
+##########################################
+
+
 # Guest agent Windows MSI package
 
 if test "$QEMU_GA_MANUFACTURER" = ""; then
@@ -2474,6 +2502,14 @@ fi
 if test "$safe_stack" = "yes"; then
   echo "CONFIG_SAFESTACK=y" >> $config_host_mak
 fi
+
+######################
+# QFLEX
+if test "$qflex" = "yes" ; then
+  echo "CONFIG_QFLEX=y" >> $config_host_mak
+  echo "LIBQFLEX_LIBS=$libqflex" >> $config_host_mak
+fi
+######################
 
 # tests/tcg configuration
 (config_host_mak=tests/tcg/config-host.mak
