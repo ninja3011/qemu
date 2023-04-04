@@ -10,6 +10,10 @@
 void disas(FILE *out, const void *code, unsigned long size);
 void target_disas(FILE *out, CPUState *cpu, target_ulong code,
                   target_ulong size);
+#ifdef CONFIG_QFLEX
+void target_disas_buffer(char **buf_ptr, CPUState *cpu, target_ulong code,
+                  target_ulong size);
+#endif
 
 void monitor_disas(Monitor *mon, CPUState *cpu,
                    target_ulong pc, int nb_insn, int is_physical);

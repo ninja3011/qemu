@@ -239,6 +239,46 @@ void target_disas(FILE *out, CPUState *cpu, target_ulong code,
     }
 }
 
+#ifdef CONFIG_QFLEX
+void target_disas_buffer(char **buf_ptr, CPUState *cpu, target_ulong code,
+                  target_ulong size)
+{
+    char *buf = *buf_ptr;
+    target_ulong pc;
+    int count;
+    CPUDebug s;
+
+    initialize_debug_target(&s, cpu);
+    s.info.fprintf_func = fprintf;
+    s.info.buffer_vma = code;
+    s.info.buffer_length = size;
+
+    if (s.info.cap_arch >= 0 && cap_disas_target(&s.info, code, size)) {
+        return;
+    }
+
+    if (s.info.print_insn == NULL) {
+        s.info.print_insn = print_insn_od_target;
+    }
+
+    for (pc = code; size > 0; pc += count, size -= count) {
+	buf += sprintf(buf, "0x" TARGET_FMT_lx ":  ", pc);
+	count = s.info.print_insn(pc, &s.info);
+	buf += sprintf(buf, "\n");
+	if (count < 0)
+	    break;
+        if (size < count) {
+            buf += sprintf(buf,
+                    "Disassembler disagrees with translator over instruction "
+                    "decoding\n"
+                    "Please report this to qemu-devel@nongnu.org\n");
+            break;
+        }
+    }
+}
+#endif
+
+
 static int gstring_printf(FILE *stream, const char *fmt, ...)
 {
     /* We abuse the FILE parameter to pass a GString. */
