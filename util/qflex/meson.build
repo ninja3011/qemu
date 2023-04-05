@@ -7,3 +7,7 @@ qflex_ss.add([files(
   'custom-instrumentation.c',
 ), qflex])
 
+libqflex_ss = ss.source_set()
+subdir('libqflex')
+qflex_ss.add_all(libqflex_ss)
+ 

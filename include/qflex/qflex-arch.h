@@ -20,7 +20,7 @@ int      QFLEX_GET_ARCH(el)(CPUState *cs);
 uint64_t QFLEX_GET_ARCH(reg)(CPUState *cs, int reg_index);
 void     QFLEX_SET_ARCH(reg)(CPUState *cs, int reg_index, uint64_t value);
 void	 QFLEX_GET_ARCH(log_inst)(CPUState *cs);
-void	 QFLEX_GET_ARCH(log_inst_buffer)(CPUState *cs, char **buf_ptr);
+void	 QFLEX_GET_ARCH(log_inst_buffer)(CPUState *cs, uint64_t addr, char **buf_ptr);
 uint32_t QFLEX_GET_ARCH(pstate)(CPUState *cs);
 uint32_t QFLEX_GET_ARCH(nzcv)(CPUState *cs);
 uint64_t QFLEX_GET_ARCH(sysreg)(CPUState *cs, uint8_t op0, uint8_t op1,

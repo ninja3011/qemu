@@ -64,8 +64,8 @@ void QFLEX_GET_ARCH(log_inst)(CPUState *cs) {
     qemu_log_unlock(logfile);
 }
 
-void QFLEX_GET_ARCH(log_inst_buffer)(CPUState *cs, char **buf_ptr) {
-//    target_disas_buffer(buf_ptr, cs, QFLEX_GET_ARCH(pc)(cs), 4);
+void QFLEX_GET_ARCH(log_inst_buffer)(CPUState *cs, uint64_t addr, char **buf_ptr) {
+    target_disas_buffer(buf_ptr, cs, addr, 4);
 }
 
 uint64_t gva_to_hva(CPUState *cs, uint64_t addr, int access_type) {

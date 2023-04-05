@@ -2260,7 +2260,7 @@ fi
 # QFLEX
 if test $qflex = "yes" ; then
   QEMU_CFLAGS="-DCONFIG_QFLEX $QEMU_CFLAGS"
-  libqflex=""
+  libqflex="-ldl"
 fi
 
 ##########################################
@@ -2508,6 +2508,8 @@ fi
 if test "$qflex" = "yes" ; then
   echo "CONFIG_QFLEX=y" >> $config_host_mak
   echo "LIBQFLEX_LIBS=$libqflex" >> $config_host_mak
+  symlink "$source_path/../libqflex/" "$source_path/util/qflex/libqflex"
+  symlink "$source_path/../libqflex/" "$source_path/include/qflex/libqflex"
 fi
 ######################
 

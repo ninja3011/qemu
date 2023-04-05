@@ -6,7 +6,7 @@
 # cflags that the main configure has already done for us.
 #
 
-BUILD_DIR := $(CURDIR)/../..
+BUILD_DIR := $(CURDIR)/../../build
 
 include $(BUILD_DIR)/config-host.mak
 
@@ -20,6 +20,7 @@ NAMES += howvec
 NAMES += lockstep
 NAMES += hwprofile
 NAMES += cache
+NAMES += qflex-trace
 NAMES += drcov
 
 SONAMES := $(addsuffix .so,$(addprefix lib,$(NAMES)))

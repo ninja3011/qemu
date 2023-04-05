@@ -16,6 +16,9 @@
 #include "qflex/qflex-log.h"
 #include "qflex/qflex-traces.h"
 
+#include "qflex/libqflex/qflex-api.h"
+#include "qflex/libqflex/flexus_proxy.h"
+
 QemuOptsList qemu_qflex_opts = {
     .name = "qflex",
     .merge_lists = true,
@@ -58,6 +61,7 @@ static void qflex_configure(QemuOpts *opts, Error **errp) {
         if (error)
             exit(EXIT_FAILURE);
     }
+    flexus_dynlib_load("mypath/failure");
 }
 
 static void qflex_log_configure(const char *opts) {
