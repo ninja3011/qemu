@@ -10,7 +10,7 @@
 #include <glib.h>
 
 #include <qemu-plugin.h>
-// #include "qflex-api.h"
+#include "qflex-api.h"
 
 #define STRTOLL(x) g_ascii_strtoll(x, NULL, 10)
 
@@ -22,6 +22,8 @@ static GHashTable *miss_ht;
 
 static GMutex hashtable_lock;
 //static GRand *rng;
+
+static QEMU_TO_QFLEX_CALLBACKS_t *qflex_callbacks = NULL;
 
 typedef struct {
     uint64_t vaddr_pc;
@@ -140,7 +142,7 @@ int qemu_plugin_install(qemu_plugin_id_t id, const qemu_info_t *info,
         }
     }
 
-    //qemu_plugin_qflex_get_callbacks();
+    qemu_plugin_qflex_get_callbacks(&qflex_callbacks);
     // Insert callback on translation block generation
     qemu_plugin_register_vcpu_tb_trans_cb(id, vcpu_tb_trans);
     // Insert callback on program exit

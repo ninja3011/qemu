@@ -35,6 +35,12 @@ CFLAGS += -I$(SRC_PATH)/include/qemu
 
 all: $(SONAMES)
 
+qflex-trace.o: qflex-trace.c
+	$(CC) $(CFLAGS) -DCONFIG_QFLEX -DPLUGIN -I../../../libqflex/ -c -o $@ $< 
+
+libqflex-trace.so: qflex-trace.o
+	$(CC) -shared -DCONFIG_QFLEX -DPLUGIN -Wl,-soname,$@ -o $@ $^ $(LDLIBS) 
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 

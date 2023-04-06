@@ -61,7 +61,11 @@ static void qflex_configure(QemuOpts *opts, Error **errp) {
         if (error)
             exit(EXIT_FAILURE);
     }
-    flexus_dynlib_load("mypath/failure");
+    const char *qflex_sim_path = qemu_opt_get(opts, "qflex-sim-path");
+    if (!qflex_sim_path) {
+        error_report("`qflex-sim-path=PATH` is required to point to QFlex library");
+    }
+    flexus_dynlib_load(qflex_sim_path);
 }
 
 static void qflex_log_configure(const char *opts) {
