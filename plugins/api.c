@@ -452,3 +452,10 @@ uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn) {
     CPUState *cpu = current_cpu;
     return qemu_plugin_vcpu_get_asid(cpu);
 }
+
+#ifdef CONFIG_QFLEX
+#include "qflex/libqflex/qflex-api.h"
+void qemu_plugin_qflex_get_callbacks(QEMU_TO_QFLEX_CALLBACKS_t **qflex_callbacks) {
+    *qflex_callbacks = &qflex_sim_callbacks;
+}
+#endif

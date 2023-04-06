@@ -628,4 +628,15 @@ uint64_t qemu_plugin_entry_code(void);
 
 bool     qemu_plugin_is_userland(const struct qemu_plugin_insn *insn);
 uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn);
+
+#ifdef CONFIG_QFLEX
+#ifdef PLUGIN
+#include "qflex-api.h"
+#else
+#include "qflex/libqflex/qflex-api.h"
+#endif
+
+void     qemu_plugin_qflex_get_callbacks(QEMU_TO_QFLEX_CALLBACKS_t **qflex_callbacks);
+#endif
+
 #endif /* QEMU_QEMU_PLUGIN_H */
