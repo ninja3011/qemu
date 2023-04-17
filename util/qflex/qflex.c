@@ -26,7 +26,14 @@ QflexState_t qflexState = {
     .singlestep = false,
     .exit_main_loop = false,
     .skip_interrupts = false,
-    .log_inst = false
+    .log_inst = false,
+    .config = {
+        .sim_cycles = 0,
+        .cores_count = 0,
+        .config_path = NULL,
+        .sim_path = NULL,
+        .modeIsTiming = false,
+    },
 };
 
 

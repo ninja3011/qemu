@@ -8,6 +8,8 @@
 #include "qemu/config-file.h"
 #include "qemu/qemu-options.h"
 #include "qemu/main-loop.h"
+#include "hw/boards.h"
+#include "qemu/option.h"
 
 #include "sysemu/tcg.h"
 
@@ -29,6 +31,24 @@ QemuOptsList qemu_qflex_opts = {
             .type = QEMU_OPT_BOOL,
 
         },
+        {
+            .name = "sim-path",
+            .type = QEMU_OPT_STRING,
+        },
+        {
+            .name = "sim-config-path",
+            .type = QEMU_OPT_STRING,
+        },
+        {
+            .name = "core-count",
+            .type = QEMU_OPT_NUMBER,
+
+        },
+        {
+            .name = "cycles",
+            .type = QEMU_OPT_NUMBER,
+
+        },
         { /* end of list */ }
     },
 };
@@ -48,24 +68,63 @@ QemuOptsList qemu_qflex_gen_mem_trace_opts = {
 
 static void qflex_configure(QemuOpts *opts, Error **errp) {
     qflexState.singlestep = qemu_opt_get_bool(opts, "singlestep", false);
+    qflexState.config.sim_cycles = qemu_opt_get_number(opts, "cycles", 1000);
+    qflexState.config.cores_count = qemu_opt_get_number(opts, "core-count", -1);
+    qflexState.config.modeIsTiming = false;
+
+    const char *config_path = qemu_opt_get(opts, "sim-config-path");
+    const char *sim_path = qemu_opt_get(opts, "sim-path");
+
+    qflexState.config.config_path = strdup(config_path);
+    qflexState.config.sim_path = strdup(sim_path);
+
+    int error = 0;
+    if (qflexState.config.modeIsTiming) {
+        qflexState.singlestep = true;
+    }
     if (qflexState.singlestep) {
-        int error = 0;
         if (!tcg_enabled()) {
-            error_report("`singlestep` available only with TCG.");
+            error_report("ERROR:`singlestep` available only with TCG.");
             error |= 1;
         }
         if (!qemu_loglevel_mask(CPU_LOG_TB_NOCHAIN)) {
-            error_report("`singlestep` available only with `-d nochain`.");
+            error_report("ERROR:`singlestep` available only with `-d nochain`.");
             error |= 1;
         }
-        if (error)
-            exit(EXIT_FAILURE);
     }
-    const char *qflex_sim_path = qemu_opt_get(opts, "qflex-sim-path");
-    if (!qflex_sim_path) {
-        error_report("`qflex-sim-path=PATH` is required to point to QFlex library");
+    if (!qflexState.config.sim_path) {
+        error_report("ERROR:`sim-path=PATH` is required to point to QFlex library");
+        error |= 1;
     }
-    flexus_dynlib_load(qflex_sim_path);
+    if (!qflexState.config.config_path) {
+        error_report("ERROR:`sim-config-path=PATH` is required to point to QFlex uArch config");
+        error |= 1;
+    }
+
+    
+    // Load QFlex library
+    bool success = flexus_dynlib_load(qflexState.config.sim_path);
+    if (success) {
+        fprintf(stderr, "<%s:%i> Flexus Simulator set!.\n", basename(__FILE__),
+                __LINE__);
+    } else {
+        error_setg(errp, "ERROR:simulator could not be set.!.\n");
+        error |= 1;
+    }
+
+    if (error) {
+        exit(EXIT_FAILURE);
+    }
+}
+
+void qflex_init(void) {
+    // Init QFlex values
+    QFLEX_TO_QEMU_API_t hooks_from_qemu;
+    QEMU_TO_QFLEX_CALLBACKS_t hooks_to_qemu;
+    qflex_api_init(qflexState.config.modeIsTiming ? true : false, qflexState.config.sim_cycles);
+    QFLEX_API_get_Interface_Hooks(&hooks_from_qemu);
+    qflex_init_fn(&hooks_from_qemu, &hooks_to_qemu, qflexState.config.cores_count, qflexState.config.config_path);
+    QEMU_API_set_Interface_Hooks(&hooks_to_qemu);
 }
 
 static void qflex_log_configure(const char *opts) {

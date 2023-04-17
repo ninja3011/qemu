@@ -11,6 +11,14 @@
 
 #define QFLEX(name)       glue(qflex_, name)
 
+typedef struct QflexConfig_t {
+    uint64_t sim_cycles;
+    int cores_count;
+    const char *config_path;
+    const char *sim_path;
+    bool modeIsTiming;
+} QflexConfig_t;
+ 
 typedef struct QflexState_t {
     bool singlestep;
     bool inst_done;
@@ -18,6 +26,7 @@ typedef struct QflexState_t {
     bool exit_main_loop;
     bool skip_interrupts;
     bool log_inst;
+    QflexConfig_t config;
 } QflexState_t;
 
 #ifndef MemoryAccessType
