@@ -49,13 +49,19 @@ uint64_t QFLEX_GET_ARCH(tid)(CPUState *cs) {
 }
 
 uint64_t QFLEX_GET_ARCH(reg)(CPUState *cs, int reg_index) {
-    assert(reg_index < 32);
+    assert(reg_index <= 31 && reg_index >= 0);
     return ENV(cs)->xregs[reg_index];
 }
 
 void QFLEX_SET_ARCH(reg)(CPUState *cs, int reg_index, uint64_t value) {
-    assert(reg_index < 32);
+    assert(reg_index <= 31 && reg_index >= 0);
     ENV(cs)->xregs[reg_index] = value;
+}
+
+
+uint64_t QFLEX_GET_ARCH(vfp_reg)(CPUState *cs, int reg_index) {
+    assert(reg_index <= 63 && reg_index >= 0);
+    return ENV(cs)->vfp.zregs[reg_index >> 1].d[reg_index & 1];
 }
 
 void QFLEX_GET_ARCH(log_inst)(CPUState *cs) {
@@ -120,6 +126,99 @@ uint64_t QFLEX_GET_ARCH(sp_el)(CPUState *cs, int el) {
 
 uint64_t QFLEX_GET_ARCH(sctlr)(CPUState *cs, int el) {
     return ENV(cs)->cp15.sctlr_el[el];
+}
+
+uint64_t QFLEX_GET_ARCH(ttbr0)(CPUState *cs, int el) {
+    return ENV(cs)->cp15.ttbr0_el[el];
+}
+
+uint64_t QFLEX_GET_ARCH(ttbr1)(CPUState *cs, int el) {
+    return ENV(cs)->cp15.ttbr1_el[el];
+}
+
+uint64_t QFLEX_GET_ARCH(tcr)(CPUState *cs, int el) {
+    return ENV(cs)->cp15.tcr_el[el];
+}
+
+uint64_t QFLEX_GET_ARCH(isa_reg)(CPUState *cs, int isar) {
+    switch (isar) {
+    case ISAR_ID_ISAR0:
+        return ARM_CPU(cs)->isar.id_isar0;
+    case ISAR_ID_ISAR1:
+        return ARM_CPU(cs)->isar.id_isar1;
+    case ISAR_ID_ISAR2:
+        return ARM_CPU(cs)->isar.id_isar2;
+    case ISAR_ID_ISAR3:
+        return ARM_CPU(cs)->isar.id_isar3;
+    case ISAR_ID_ISAR4:
+        return ARM_CPU(cs)->isar.id_isar4;
+    case ISAR_ID_ISAR5:
+        return ARM_CPU(cs)->isar.id_isar5;
+    case ISAR_ID_ISAR6:
+        return ARM_CPU(cs)->isar.id_isar6;
+    case ISAR_ID_MMFR0:
+        return ARM_CPU(cs)->isar.id_mmfr0;
+    case ISAR_ID_MMFR1:
+        return ARM_CPU(cs)->isar.id_mmfr1;
+    case ISAR_ID_MMFR2:
+        return ARM_CPU(cs)->isar.id_mmfr2;
+    case ISAR_ID_MMFR3:
+        return ARM_CPU(cs)->isar.id_mmfr3;
+    case ISAR_ID_MMFR4:
+        return ARM_CPU(cs)->isar.id_mmfr4;
+    case ISAR_ID_MMFR5:
+        return ARM_CPU(cs)->isar.id_mmfr5;
+    case ISAR_ID_PFR0:
+        return ARM_CPU(cs)->isar.id_pfr0;
+    case ISAR_ID_PFR1:
+        return ARM_CPU(cs)->isar.id_pfr1;
+    case ISAR_ID_PFR2:
+        return ARM_CPU(cs)->isar.id_pfr2;
+    case ISAR_MVFR0:
+        return ARM_CPU(cs)->isar.mvfr0;
+    case ISAR_MVFR1:
+        return ARM_CPU(cs)->isar.mvfr1;
+    case ISAR_MVFR2:
+        return ARM_CPU(cs)->isar.mvfr2;
+    case ISAR_ID_DFR0:
+        return ARM_CPU(cs)->isar.id_dfr0;
+    case ISAR_ID_DFR1:
+        return ARM_CPU(cs)->isar.id_dfr1;
+    case ISAR_DBGDIDR:
+        return ARM_CPU(cs)->isar.dbgdidr;
+    case ISAR_DBGDEVID:
+        return ARM_CPU(cs)->isar.dbgdevid;
+    case ISAR_DBGDEVID1:
+        return ARM_CPU(cs)->isar.dbgdevid1;
+    case ISAR_ID_AA64ISAR0:
+        return ARM_CPU(cs)->isar.id_aa64isar0;
+    case ISAR_ID_AA64ISAR1:
+        return ARM_CPU(cs)->isar.id_aa64isar1;
+    case ISAR_ID_AA64PFR0:
+        return ARM_CPU(cs)->isar.id_aa64pfr0;
+    case ISAR_ID_AA64PFR1:
+        return ARM_CPU(cs)->isar.id_aa64pfr1;
+    case ISAR_ID_AA64MMFR0:
+        return ARM_CPU(cs)->isar.id_aa64mmfr0;
+    case ISAR_ID_AA64MMFR1:
+        return ARM_CPU(cs)->isar.id_aa64mmfr1;
+    case ISAR_ID_AA64MMFR2:
+        return ARM_CPU(cs)->isar.id_aa64mmfr2;
+    case ISAR_ID_AA64DFR0:
+        return ARM_CPU(cs)->isar.id_aa64dfr0;
+    case ISAR_ID_AA64DFR1:
+        return ARM_CPU(cs)->isar.id_aa64dfr1;
+    case ISAR_ID_AA64ZFR0:
+        return ARM_CPU(cs)->isar.id_aa64zfr0;
+    case ISAR_ID_AA64SMFR0:
+        return ARM_CPU(cs)->isar.id_aa64smfr0;
+    case ISAR_RESET_PMCR_EL0:
+        return ARM_CPU(cs)->isar.reset_pmcr_el0;
+    default:
+    // Argument index not found
+        assert(false);
+    };
+    assert(false);
 }
 
 uint64_t QFLEX_GET_ARCH(sysreg)(CPUState *cs, uint8_t op0, uint8_t op1,
