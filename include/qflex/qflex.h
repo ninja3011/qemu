@@ -16,7 +16,9 @@ typedef struct QflexConfig_t {
     int cores_count;
     const char *config_path;
     const char *sim_path;
-    bool modeIsTiming;
+    const char *debug_mode;
+    bool is_trace;
+    bool is_timing;
 } QflexConfig_t;
  
 typedef struct QflexState_t {

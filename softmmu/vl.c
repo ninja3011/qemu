@@ -3621,7 +3621,7 @@ void qemu_init(int argc, char **argv)
     resume_mux_open();
 #ifdef CONFIG_QFLEX
     if (qflexState.config.sim_path) {
-        qflex_init();
+        qflex_init(&error_fatal);
     }
 #endif
 }
