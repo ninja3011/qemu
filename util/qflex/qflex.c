@@ -32,7 +32,9 @@ QflexState_t qflexState = {
         .cores_count = 0,
         .config_path = NULL,
         .sim_path = NULL,
-        .modeIsTiming = false,
+        .debug_mode = NULL,
+        .is_trace = false,
+        .is_timing = false,
     },
 };
 
