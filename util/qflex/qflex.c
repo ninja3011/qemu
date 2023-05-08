@@ -73,15 +73,33 @@ int qflex_singlestep(CPUState *cpu) {
     return qflex_singlestep_with_retry(cpu, false);
 }
 
+static void qflex_prepare_singlestep(void) {
+    CPUState *cpu;
+    CPU_FOREACH(cpu) {
+        cpu_single_step(cpu, SSTEP_ENABLE);
+        qatomic_mb_set(&cpu->exit_request, 0);
+    }
+}
+
 int qflex_adaptative_execution(CPUState *cpu) {
     qflexState.exit_main_loop = false;
+    if (qflexState.config.is_timing || qflexState.singlestep) {
+            qflex_prepare_singlestep();
+    }
     while(1) {
-        if (qflexState.singlestep) {
+        if (qflexState.config.is_timing) {
+            qflex_sim_callbacks.start_timing();
+        } else if (qflexState.singlestep) {
             qflex_singlestep(cpu);
         }
         else if(!qflexState.exit_main_loop) {
             break;
         } 
+    }
+
+    CPUState *cs;
+    CPU_FOREACH(cs) {
+        cpu_single_step(cs, 0);
     }
     return 0;
 }
