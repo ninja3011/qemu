@@ -78,6 +78,10 @@ uint64_t gva_to_hva(CPUState *cs, uint64_t addr, int access_type) {
     return gva_to_hva_arch(cs, addr, (MMUAccessType) access_type);
 }
 
+uint64_t gva_to_gpa(CPUState *cs, uint64_t addr, int access_type) {
+    return gva_to_gpa_arch(cs, addr, (MMUAccessType) access_type);
+}
+
 uint64_t gva_to_hva_with_asid(uint64_t asid_reg, uint64_t vaddr, int access_type) {
     CPUState *cs = first_cpu;
     return gva_to_hva_arch_with_asid(cs, vaddr, (MMUAccessType) access_type, asid_reg);

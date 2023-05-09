@@ -11688,6 +11688,19 @@ void aarch64_sve_change_el(CPUARMState *env, int old_el,
 #ifdef CONFIG_QFLEX
 #include "qflex-helper.h"
 
+uint64_t gva_to_gpa_arch(CPUState *cs, uint64_t vaddr, MMUAccessType access_type) {
+    MemTxAttrs attrs;
+    hwaddr phys_addr;
+    
+    phys_addr = arm_cpu_get_phys_page_attrs_debug(cs, vaddr, &attrs);
+    if (phys_addr == -1)
+    {
+        return -1;
+    }
+
+    return (uint64_t) phys_addr;
+}
+
 uint64_t gva_to_hva_arch(CPUState *cs, uint64_t vaddr, MMUAccessType access_type) {
 #ifdef CONFIG_USER_ONLY
     return g2h(vaddr) ? (uint64_t)g2h(vaddr) : -1;

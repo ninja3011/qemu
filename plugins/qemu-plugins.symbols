@@ -46,5 +46,6 @@
   qemu_plugin_get_asid;
 #ifdef CONFIG_QFLEX
   qemu_plugin_qflex_get_callbacks;
+  qemu_plugin_get_gpaddr;
 #endif
 };

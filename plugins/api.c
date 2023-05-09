@@ -455,7 +455,14 @@ uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn) {
 
 #ifdef CONFIG_QFLEX
 #include "qflex/libqflex/qflex-api.h"
+#include "qflex/qflex-arch.h"
 void qemu_plugin_qflex_get_callbacks(QEMU_TO_QFLEX_CALLBACKS_t **qflex_callbacks) {
     *qflex_callbacks = &qflex_sim_callbacks;
 }
+
+uint64_t qemu_plugin_get_gpaddr(uint64_t gvaddr, int access_type) {
+    CPUState *cpu = current_cpu;
+    return gva_to_gpa(cpu, gvaddr, access_type);
+}
+
 #endif

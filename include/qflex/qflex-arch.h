@@ -79,6 +79,9 @@ bool QFLEX_GET_ARCH(has_irq)(CPUState *cs);
 
 void qflex_dump_archstate_log(CPUState *cpu, char **buf_ptr);
 
+
+// Guest VA to Guest PA
+uint64_t gva_to_gpa(CPUState *cs, uint64_t addr, int access_type);
 uint64_t gva_to_hva(CPUState *cs, uint64_t addr, int access_type);
 uint64_t gva_to_hva_with_asid(uint64_t asid_reg, uint64_t vaddr, int access_type);
 

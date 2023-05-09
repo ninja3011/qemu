@@ -637,6 +637,7 @@ uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn);
 #endif
 
 void     qemu_plugin_qflex_get_callbacks(QEMU_TO_QFLEX_CALLBACKS_t **qflex_callbacks);
+uint64_t qemu_plugin_get_gpaddr(uint64_t gvaddr, int access_type);
 #endif
 
 #endif /* QEMU_QEMU_PLUGIN_H */
