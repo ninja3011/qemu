@@ -1,4 +1,3 @@
-// #include "disas/disas.h"
 #include "qemu/osdep.h"
 #include "cpu.h"
 #include "internals.h"
@@ -71,7 +70,13 @@ void QFLEX_GET_ARCH(log_inst)(CPUState *cs) {
 }
 
 void QFLEX_GET_ARCH(log_inst_buffer)(CPUState *cs, uint64_t addr, char **buf_ptr) {
-    target_disas_buffer(buf_ptr, cs, addr, 4);
+    //target_disas_buffer(buf_ptr, cs, addr, 4);
+    char *buf = plugin_disas_pc(cs, QFLEX_GET_ARCH(pc)(cs), 4);
+    char *newstr = malloc(strlen(buf) + 2);
+    strcpy(newstr, buf);
+    strcat(newstr, "\n");
+    free(buf);
+    *buf_ptr = newstr;
 }
 
 uint64_t gva_to_hva(CPUState *cs, uint64_t addr, int access_type) {

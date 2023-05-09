@@ -15,10 +15,13 @@
 #include "qapi/qmp/qerror.h"
 #include "qemu/option_int.h"
 #include "qemu/main-loop.h"
+#include "disas/disas.h"
 
 #include "exec/log.h"
+#include "qflex/qflex-arch.h"
 #include "qflex/qflex.h"
 #include "qflex/qflex-traces.h"
+#include "qflex/libqflex/qflex-api.h"
 
 QflexState_t qflexState = {
     .inst_done = false,
@@ -38,7 +41,7 @@ QflexState_t qflexState = {
     },
 };
 
-
+char buf[1024];
 
 static int qflex_singlestep_with_retry(CPUState *cpu, bool retry) {
     int ret = 0;
@@ -47,8 +50,8 @@ static int qflex_singlestep_with_retry(CPUState *cpu, bool retry) {
     uint64_t pc_ss_after;
 
     if(qflexState.log_inst) {
-        qemu_log("CPU[%i]:ASID[%x]:", cpu->cpu_index, asid); 
-        QFLEX_GET_ARCH(log_inst)(cpu);
+        QFLEX_GET_ARCH(log_inst_buffer)(cpu, pc_ss, (char **) &buf);
+        qemu_log("CPU[%i]:ASID[%x]:  %s\n", cpu->cpu_index, asid, buf); 
     }
 
     ret = qflex_cpu_step(cpu);
@@ -59,6 +62,7 @@ static int qflex_singlestep_with_retry(CPUState *cpu, bool retry) {
             printf("QFlex singlestep went wrong twice in a row: ret = %x\n", ret);
             qemu_log("QFlex singlestep went wrong twice in a row: ret = %x\n", ret);
             assert(false);
+            // ret = qflex_singlestep_with_retry(cpu, true);
         } else {
             printf("QFlex singlestep went wrong, did not advance a step: ret = %x\n ---- Retrying\n", ret);
             qemu_log("QFlex singlestep went wrong, did not advance a step: ret = %x\n ---- Retrying\n", ret);

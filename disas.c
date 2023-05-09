@@ -239,46 +239,6 @@ void target_disas(FILE *out, CPUState *cpu, target_ulong code,
     }
 }
 
-#ifdef CONFIG_QFLEX
-void target_disas_buffer(char **buf_ptr, CPUState *cpu, target_ulong code,
-                  target_ulong size)
-{
-    char *buf = *buf_ptr;
-    target_ulong pc;
-    int count;
-    CPUDebug s;
-
-    initialize_debug_target(&s, cpu);
-    s.info.fprintf_func = fprintf;
-    s.info.buffer_vma = code;
-    s.info.buffer_length = size;
-
-    if (s.info.cap_arch >= 0 && cap_disas_target(&s.info, code, size)) {
-        return;
-    }
-
-    if (s.info.print_insn == NULL) {
-        s.info.print_insn = print_insn_od_target;
-    }
-
-    for (pc = code; size > 0; pc += count, size -= count) {
-	buf += sprintf(buf, "0x" TARGET_FMT_lx ":  ", pc);
-	count = s.info.print_insn(pc, &s.info);
-	buf += sprintf(buf, "\n");
-	if (count < 0)
-	    break;
-        if (size < count) {
-            buf += sprintf(buf,
-                    "Disassembler disagrees with translator over instruction "
-                    "decoding\n"
-                    "Please report this to qemu-devel@nongnu.org\n");
-            break;
-        }
-    }
-}
-#endif
-
-
 static int gstring_printf(FILE *stream, const char *fmt, ...)
 {
     /* We abuse the FILE parameter to pass a GString. */
@@ -298,6 +258,32 @@ static void plugin_print_address(bfd_vma addr, struct disassemble_info *info)
     /* does nothing */
 }
 
+#ifdef CONFIG_QFLEX
+char *plugin_disas_pc(CPUState *cpu, uint64_t addr, size_t size)
+{
+    CPUDebug s;
+    GString *ds = g_string_new(NULL);
+
+    initialize_debug_target(&s, cpu);
+    s.info.fprintf_func = gstring_printf;
+    s.info.stream = (FILE *)ds;  /* abuse this slot */
+    s.info.buffer_vma = addr;
+    s.info.buffer_length = size;
+    s.info.print_address_func = plugin_print_address;
+
+    g_string_append_printf(ds, "0x" TARGET_FMT_lx ":  ", addr);
+    if (s.info.cap_arch >= 0 && cap_disas_plugin(&s.info, addr, size)) {
+        ; /* done */
+    } else if (s.info.print_insn) {
+        s.info.print_insn(addr, &s.info);
+    } else {
+        ; /* cannot disassemble -- return empty string */
+    }
+
+    /* Return the buffer, freeing the GString container.  */
+    return g_string_free(ds, false);
+}
+#endif
 
 /*
  * We should only be dissembling one instruction at a time here. If
