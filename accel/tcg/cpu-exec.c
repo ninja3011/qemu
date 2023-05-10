@@ -1119,11 +1119,4 @@ void tcg_exec_unrealizefn(CPUState *cpu)
     g_free_rcu(cpu->tb_jmp_cache, rcu);
 }
 
-#ifdef CONFIG_QFLEX
-void qflex_tb_flush(void) {
-    CPUState *cpu;
-    CPU_FOREACH(cpu) {
-        tb_flush(cpu);
-    }
-}
-#endif
+

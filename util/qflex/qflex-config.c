@@ -89,7 +89,11 @@ static void qflex_configure(QemuOpts *opts, Error **errp) {
 
     qflexState.config.config_path = strdup(config_path);
     qflexState.config.sim_path = strdup(sim_path);
-    qflexState.config.debug_mode = strdup(debug_mode);
+    if (debug_mode) {
+        qflexState.config.debug_mode = strdup(debug_mode);
+    } else {
+        qflexState.config.debug_mode = NULL;
+    }
 
     int error = 0;
     // Set trace or timing

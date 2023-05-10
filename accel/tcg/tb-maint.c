@@ -769,6 +769,16 @@ void tb_flush(CPUState *cpu)
     }
 }
 
+#ifdef CONFIG_QFLEX
+#include "qflex/qflex.h"
+void qflex_tb_flush(void) {
+    CPUState *cpu;
+    CPU_FOREACH(cpu) {
+        tb_flush(cpu);
+    }
+}
+#endif
+
 /* remove @orig from its @n_orig-th jump list */
 static inline void tb_remove_from_jmp_list(TranslationBlock *orig, int n_orig)
 {
