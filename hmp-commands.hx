@@ -361,6 +361,44 @@ SRST
   Since 4.0, loadvm stopped accepting snapshot id as parameter.
 ERST
 
+
+    {
+        .name       = "savevm-external",
+        .args_type  = "name:s?",
+        .params     = "tag",
+        .help       = "save a VM snapshot. If no tag is provided, a new snapshot is created",
+        .cmd        = hmp_savevm_external,
+    },
+
+SRST
+``savevm-external`` *tag*
+  Create a snapshot of the whole virtual machine. If *tag* is
+  provided, it is used as human readable identifier. If there is already
+  a snapshot with the same tag, it is replaced. More info at
+  :ref:`vm_005fsnapshots`.
+
+  Since 4.0, savevm stopped allowing the snapshot id to be set, accepting
+  only *tag* as parameter.
+ERST
+
+    {
+        .name       = "loadvm-external",
+        .args_type  = "name:s",
+        .params     = "tag",
+        .help       = "restore a VM snapshot from its tag",
+        .cmd        = hmp_loadvm_external,
+        .command_completion = loadvm_completion,
+    },
+
+SRST
+``loadvm-external`` *tag*
+  Set the whole virtual machine to the snapshot identified by the tag
+  *tag*.
+
+  Since 4.0, loadvm stopped accepting snapshot id as parameter.
+ERST
+
+
     {
         .name       = "delvm",
         .args_type  = "name:s",

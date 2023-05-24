@@ -61,4 +61,50 @@ bool delete_snapshot(const char *name,
                     bool has_devices, strList *devices,
                     Error **errp);
 
+
+
+#if 1 // TODO snapshot flag
+
+/**
+ * save_snapshot_external: Save an internal snapshot.
+ * @snap_name: name of external snapshot
+ * @overwrite: replace existing snapshot with @name
+ * @vmstate: blockdev node name to store VM state in
+ * @has_devices: whether to use explicit device list
+ * @devices: explicit device list to snapshot
+ * @errp: pointer to error object
+ * On success, return %true.
+ * On failure, store an error through @errp and return %false.
+ */
+bool save_snapshot_external(const char *snap_name, const char *vmstate,
+                            bool has_devices, strList *devices, Error **errp);
+
+/**
+ * load_snapshot_external: Load an internal snapshot.
+ * @snap_name: name of external snapshot
+ * @vmstate: blockdev node name to load VM state from
+ * @has_devices: whether to use explicit device list
+ * @devices: explicit device list to snapshot
+ * @errp: pointer to error object
+ * On success, return %true.
+ * On failure, store an error through @errp and return %false.
+ */
+bool load_snapshot_external(const char *snap_name, const char *vmstate,
+                            bool has_devices, strList *devices, Error **errp);
+
+/**
+ * init_snapshot_external: Creates an external block for writes.
+ * @blkname: name of the main device
+ * @vmstate: blockdev node name to load VM state from
+ * @has_devices: whether to use explicit device list
+ * @devices: explicit device list to snapshot
+ * @errp: pointer to error object
+ * On success, return %true.
+ * On failure, store an error through @errp and return %false.
+ */
+bool init_snapshot_external_all(Error **errp);
+
+
+#endif /* CONFIG_EXTERNAL_SNAP */
+
 #endif

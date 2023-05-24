@@ -2617,12 +2617,23 @@ void qmp_x_exit_preconfig(Error **errp)
     qemu_create_cli_devices();
     qemu_machine_creation_done();
 
+    bool has_external_enabled = false;
     if (loadvm) {
-        load_snapshot(loadvm, NULL, false, NULL, &error_fatal);
+        if (!has_external_enabled) {
+            load_snapshot(loadvm, NULL, false, NULL, &error_fatal);
+        } else {
+            load_snapshot_external(loadvm, NULL, false, NULL,
+                                   &error_fatal);
+        }
     }
     if (replay_mode != REPLAY_MODE_NONE) {
         replay_vmstate_init();
     }
+
+    // if(has_external_enabled) {
+        init_snapshot_external_all(&error_fatal);
+    // }
+
 
     if (incoming) {
         Error *local_err = NULL;

@@ -460,7 +460,7 @@ int bdrv_snapshot_load_tmp_by_id_or_name(BlockDriverState *bs,
 }
 
 
-static int bdrv_all_get_snapshot_devices(bool has_devices, strList *devices,
+int bdrv_all_get_snapshot_devices(bool has_devices, strList *devices,
                                          GList **all_bdrvs,
                                          Error **errp)
 {

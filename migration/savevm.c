@@ -3387,3 +3387,358 @@ void qmp_snapshot_delete(const char *job_id,
 
     job_start(&s->common);
 }
+
+#if 1  // TODO: Introduce new flag for external snapshots
+
+#include "qapi/qapi-commands-block-core.h"
+#include "block/block_int-common.h"
+#include "block/block-global-state.h"
+#include "io/channel-command.h"
+
+const char *decompress_snap = "pbzip2 -d -c";
+const char *compress_snap = "pbzip2 -c";
+
+static bool get_snap_file_dir(const char* base_filename, const char* snap_name, GString *snap_file_dir) {
+    char *dirpath = g_path_get_dirname(base_filename);
+    char *filename = g_path_get_basename(base_filename);
+    assert(dirpath && filename);
+    g_string_append_printf(snap_file_dir, "%s/snapshots-snap/%s/%s", dirpath, snap_name, filename);
+    g_mkdir_with_parents(g_path_get_dirname(snap_file_dir->str), 0700);
+    return true;
+}
+
+static bool get_snap_mem_file_dir(const char* base_filename, const char* snap_name, GString *snap_file_dir) {
+    char *dirpath = g_path_get_dirname(base_filename);
+    assert(dirpath);
+    g_string_append_printf(snap_file_dir, "%s/snapshots-snap/%s/mem", dirpath, snap_name);
+    g_mkdir_with_parents(g_path_get_dirname(snap_file_dir->str), 0700);
+    return true;
+}
+
+static bool save_snapshot_external_bdrv(BlockDriverState *bs, const char* snap_name, Error **errp) {
+    g_autoptr(GString) snap_temp_path = g_string_new("");
+    BlockDeviceInfoList *bs_list = bdrv_named_nodes_list(false, errp);
+    if (!bs_list) {
+        error_setg(errp, "Could not find block for external snapshot");
+        return false;
+    }
+
+    if (snap_name) {
+        get_snap_file_dir(bs->filename, snap_name, snap_temp_path);
+        pstrcpy(bs->filename, sizeof(bs->filename), snap_temp_path->str);
+        pstrcpy(bs->exact_filename, sizeof(bs->exact_filename), bs->filename);
+    } else {
+        g_autoptr(GDateTime) now = g_date_time_new_now_local();
+        g_autofree char *autoname = g_date_time_format(now, "%Y%m%d%H%M%S");
+        get_snap_file_dir(bs->filename, "tmp", snap_temp_path);
+        g_string_append_printf(snap_temp_path, "-%s", autoname);
+    }
+
+    qmp_blockdev_snapshot_sync(bdrv_get_device_name(bs), NULL, snap_temp_path->str, NULL,
+                               "qcow2", true, NEW_IMAGE_MODE_ABSOLUTE_PATHS,
+                               errp);
+
+    if (*errp) {
+        error_report_err(*errp);
+        return false;
+    }
+
+    return true;
+}
+
+static bool save_snapshot_external_mem(const char *base_bdrv_filename, const char *snap_name, Error **errp) {
+    int ret = -1, ret2;
+    QEMUFile *f;
+    QIOChannel *ioc;
+    g_autoptr(GString) snap_file_dir = g_string_new(""), command = g_string_new("");
+
+    /* save the VM state (ram + devices) to separate file */
+    
+    get_snap_mem_file_dir(base_bdrv_filename, snap_name, snap_file_dir);
+
+    g_string_append_printf(command, "%s > %s", compress_snap, snap_file_dir->str);
+    const char *argv[] = { "/bin/sh", "-c", command->str, NULL };
+
+    ioc = QIO_CHANNEL(qio_channel_command_new_spawn(argv, O_WRONLY, errp));
+
+    qio_channel_set_name(ioc, "external-snapshot-savevm-outgoing");
+
+    if (!ioc) {
+        error_setg(errp, "Error opening file for saving mem state");
+        goto the_end;
+    }
+
+    f = qemu_file_new_output(ioc);
+
+    if (!f) {
+        error_setg(errp, "Could not open VM state file");
+        goto the_end;
+    }
+    ret = qemu_savevm_state(f, errp);
+    ret2 = qemu_fclose(f);
+    if (ret < 0) {
+        goto the_end;
+    }
+    if (ret2 < 0) {
+        ret = ret2;
+        goto the_end;
+    }
+
+    ret = 0;
+
+ the_end:
+    return ret == 0;
+}
+
+
+
+static bool load_snapshot_external_bdrv(const char *snap_name, BlockDriverState *bs_base,
+                                 const char *vmstate, bool has_devices,
+                                 strList *devices, Error **errp) {
+    BlockDriverState *bs_snap;
+    QEMUSnapshotInfo sn;
+    int ret;
+    AioContext *aio_context;
+    g_autoptr(GString) snap_file_dir = g_string_new("");
+
+    get_snap_file_dir(bs_base->filename, snap_name, snap_file_dir);
+
+    bs_snap = bdrv_open(snap_file_dir->str, NULL, NULL, bs_base->open_flags, errp);
+    if (!bs_snap) {
+        error_setg(errp, "The snapshot at dir %s couldn't not be opened",
+                   snap_file_dir->str);
+        return false;
+    }
+
+    aio_context = bdrv_get_aio_context(bs_snap);
+
+    /* Don't even try to load empty VM states */
+    aio_context_acquire(aio_context);
+    ret = bdrv_snapshot_find(bs_snap, &sn, snap_name);
+    aio_context_release(aio_context);
+    if (ret < 0) {
+        return false;
+    } else if (sn.vm_state_size == 0) {
+        error_setg(errp, "This is a disk-only snapshot. Revert to it "
+                   " offline using qemu-img");
+        return false;
+    }
+
+    /* Flush all IO requests so they don't interfere with the new state.  */
+    bdrv_drain_all_begin();
+
+    qemu_system_reset(SHUTDOWN_CAUSE_SNAPSHOT_LOAD);
+
+    bdrv_drain_all_end();
+
+    if (ret < 0) {
+        error_setg(errp, "Error %d while loading VM state", ret);
+        return false;
+    }
+
+    return true;
+}
+
+static bool load_snapshot_external_mem(const char *snap_name, const char* base_bdrv_filename,
+                            const char *vmstate, bool has_devices,
+                            strList *devices, Error **errp) {
+    QEMUFile *f;
+    int ret;
+    QIOChannel *ioc;
+    g_autoptr(GString) snap_file_dir = g_string_new(""), command = g_string_new("");
+    MigrationIncomingState *mis = migration_incoming_get_current();
+ 
+    /* load the VM state (ram + devices) from separate file */
+    get_snap_mem_file_dir(base_bdrv_filename, snap_name, snap_file_dir);
+
+    g_string_append_printf(command, "%s %s", decompress_snap, snap_file_dir->str);
+    const char *argv[] = { "/bin/sh", "-c", command->str, NULL };
+    ioc = QIO_CHANNEL(qio_channel_command_new_spawn(argv, O_WRONLY, errp));
+
+    qio_channel_set_name(ioc, "external-snapshot-loadvm-outgoing");
+
+    /*
+     * Flush the record/replay queue. Now the VM state is going
+     * to change. Therefore we don't need to preserve its consistency
+     */
+    replay_flush_events();
+
+    /* restore the VM state */
+    f = qemu_file_new_input(ioc);
+
+    if (!f) {
+        error_setg(errp, "Could not run command  %s for loading external snap\n", command->str);
+        goto err;
+    }
+
+    qemu_system_reset(SHUTDOWN_CAUSE_SNAPSHOT_LOAD);
+    mis->from_src_file = f;
+
+    if (!yank_register_instance(MIGRATION_YANK_INSTANCE, errp)) {
+        ret = -EINVAL;
+        goto err;
+    }
+    ret = qemu_loadvm_state(f);
+
+    qemu_fclose(f);
+    migration_incoming_state_destroy();
+
+    if (ret < 0) {
+        error_setg(errp, "Error %d while loading VM state", ret);
+        return false;
+    }
+
+    return true;
+
+err:
+    return false;
+}
+
+bool save_snapshot_external(const char *snap_name, const char *vmstate, bool has_devices,
+                            strList *devices, Error **errp) {
+
+    bool ret = true;
+    int saved_vm_running;
+    g_autoptr(GList) bdrvs = NULL;
+    GList *iterbdrvs;
+    const char *base_bdrv_filename = NULL;
+
+    saved_vm_running = runstate_is_running();
+
+    if(saved_vm_running) {
+        vm_stop(RUN_STATE_RESTORE_VM);
+    }
+
+    GLOBAL_STATE_CODE();
+
+    if (migration_is_blocked(errp)) {
+        ret = false;
+        goto end;
+    }
+
+    if (!replay_can_snapshot()) {
+        error_setg(errp, "Record/replay does not allow making snapshot "
+                   "right now. Try once more later.");
+        ret = false;
+        goto end;
+    }
+
+    if (!bdrv_all_can_snapshot(has_devices, devices, errp)) {
+        ret = false;
+        goto end;
+    }
+
+    if (!snap_name) {
+        error_setg(errp, "Must have a snapshot name");
+        ret = false;
+        goto end;
+    }
+
+    ret = global_state_store();
+    if (ret) {
+        error_setg(errp, "Error saving global state");
+        goto end;
+    }
+
+    bdrv_drain_all_begin();
+
+    if (bdrv_all_get_snapshot_devices(false, NULL, &bdrvs, errp)) {
+        return false;
+    }
+
+    iterbdrvs = bdrvs;
+    while (iterbdrvs) {
+        BlockDriverState *bs = iterbdrvs->data;
+        if (!bdrv_is_read_only(bs)) {
+            ret = save_snapshot_external_bdrv(bs, snap_name, errp); 
+            if(!ret) {
+                error_report_err(*errp);
+                goto end;
+            }
+            base_bdrv_filename = bs->filename;
+        }
+        iterbdrvs = iterbdrvs->next;
+    }
+ 
+    ret = save_snapshot_external_mem(base_bdrv_filename, snap_name, errp);
+    if (!ret) {
+        error_report_err(*errp);
+        goto end;
+    }
+
+    ret = base_bdrv_filename;
+    if (!ret) {
+        error_setg(errp, "Error saving external snapshot, no writable image found");
+        goto end;
+    }
+
+end:
+    bdrv_drain_all_end();
+
+    if (saved_vm_running) {
+        vm_start();
+    }
+    return ret;
+}
+
+bool load_snapshot_external(const char *snap_name, const char *vmstate,
+                            bool has_devices, strList *devices, Error **errp) {
+
+    g_autoptr(GList) bdrvs = NULL;
+    GList *iterbdrvs;
+    const char *base_bdrv_filename = NULL;
+
+    if (bdrv_all_get_snapshot_devices(false, NULL, &bdrvs, errp)) {
+        return false;
+    }
+
+    iterbdrvs = bdrvs;
+    while (iterbdrvs) {
+        BlockDriverState *bs = iterbdrvs->data;
+        if (!bdrv_is_read_only(bs)) {
+            if(!load_snapshot_external_bdrv(snap_name, bs, vmstate,
+                                              has_devices, devices, errp)){
+                error_report_err(*errp);
+                return false;
+            }
+            base_bdrv_filename = bs->filename;
+        }
+        iterbdrvs = iterbdrvs->next;
+    }
+ 
+    if (!load_snapshot_external_mem(snap_name, base_bdrv_filename, vmstate, has_devices,
+                               devices, errp)) {
+        error_report_err(*errp);
+        return false;
+    }
+
+    return true;
+}
+
+bool init_snapshot_external_all(Error **errp) {
+    g_autoptr(GList) bdrvs = NULL;
+    GList *iterbdrvs;
+
+    if (bdrv_all_get_snapshot_devices(false, NULL, &bdrvs, errp)) {
+        return false;
+    }
+
+    iterbdrvs = bdrvs;
+    while (iterbdrvs) {
+        BlockDriverState *bs = iterbdrvs->data;
+        if (!bdrv_is_read_only(bs)) {
+            if (!save_snapshot_external_bdrv(bs, NULL, errp)) {
+                error_report_err(*errp);
+                return false;
+            }
+        }
+        iterbdrvs = iterbdrvs->next;
+    }
+ 
+
+    //for (bs = bdrv_first(&it); bs; bs = bdrv_next(&it)) {
+    //}
+    return true;
+}
+
+#endif /* CONFIG_EXTENDED_SNAP */
