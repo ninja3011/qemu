@@ -102,7 +102,7 @@ bool load_snapshot_external(const char *snap_name, const char *vmstate,
  * On success, return %true.
  * On failure, store an error through @errp and return %false.
  */
-bool init_snapshot_external_all(Error **errp);
+bool init_snapshot_external_tmp(Error **errp);
 
 
 #endif /* CONFIG_EXTERNAL_SNAP */

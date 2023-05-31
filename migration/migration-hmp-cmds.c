@@ -390,8 +390,8 @@ void hmp_savevm_external(Monitor *mon, const QDict *qdict)
 {
     Error *err = NULL;
 
-    save_snapshot(qdict_get_try_str(qdict, "name"),
-                  true, NULL, false, NULL, &err);
+    save_snapshot_external(qdict_get_try_str(qdict, "name"),
+                  NULL, false, NULL, &err);
     hmp_handle_error(mon, err);
 }
 
