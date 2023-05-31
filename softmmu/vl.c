@@ -167,6 +167,7 @@ static const char *cpu_option;
 static const char *mem_path;
 static const char *incoming;
 static const char *loadvm;
+static bool has_external_enabled = false;
 static const char *accelerators;
 static bool have_custom_ram_size;
 static const char *ram_memdev_id;
@@ -2617,23 +2618,21 @@ void qmp_x_exit_preconfig(Error **errp)
     qemu_create_cli_devices();
     qemu_machine_creation_done();
 
-    bool has_external_enabled = false;
-    if (loadvm) {
-        if (!has_external_enabled) {
-            load_snapshot(loadvm, NULL, false, NULL, &error_fatal);
-        } else {
-            load_snapshot_external(loadvm, NULL, false, NULL,
-                                   &error_fatal);
-        }
+    if (loadvm && !has_external_enabled) {
+        load_snapshot(loadvm, NULL, false, NULL, &error_fatal);
     }
+
     if (replay_mode != REPLAY_MODE_NONE) {
         replay_vmstate_init();
     }
 
-    // if(has_external_enabled) {
-        init_snapshot_external_all(&error_fatal);
-    // }
-
+    if(has_external_enabled) {
+        init_snapshot_external_tmp(&error_fatal);
+        if (loadvm) {
+            load_snapshot_external(loadvm, NULL, false, NULL,
+                                   &error_fatal);
+        } 
+    }
 
     if (incoming) {
         Error *local_err = NULL;
@@ -3181,6 +3180,10 @@ void qemu_init(int argc, char **argv)
                 break;
             case QEMU_OPTION_loadvm:
                 loadvm = optarg;
+                break;
+            case QEMU_OPTION_loadvm_external:
+                loadvm = optarg;
+                has_external_enabled = true;
                 break;
             case QEMU_OPTION_full_screen:
                 dpy.has_full_screen = true;
