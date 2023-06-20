@@ -3185,6 +3185,9 @@ void qemu_init(int argc, char **argv)
                 loadvm = optarg;
                 has_external_enabled = true;
                 break;
+            case QEMU_OPTION_snapvm_external:
+                has_external_enabled = true;
+                break;
             case QEMU_OPTION_full_screen:
                 dpy.has_full_screen = true;
                 dpy.full_screen = true;

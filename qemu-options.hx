@@ -4387,6 +4387,13 @@ SRST
     Start right away with a saved state (``loadvm`` in monitor)
 ERST
 
+DEF("snapvm-external", 0, QEMU_OPTION_snapvm_external, \
+    "                Enable external snapshots\n",
+    QEMU_ARCH_ALL)
+SRST
+``-snapvm-external``
+ERST
+
 
 
 #ifndef _WIN32
