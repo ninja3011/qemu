@@ -3581,7 +3581,7 @@ static bool load_snapshot_external_mem(BlockDriverState *bs, const char *snap_na
 
     g_string_append_printf(command, "%s %s", decompress_snap, snap_file_dir->str);
     const char *argv[] = { "/bin/sh", "-c", command->str, NULL };
-    ioc = QIO_CHANNEL(qio_channel_command_new_spawn(argv, O_WRONLY, errp));
+    ioc = QIO_CHANNEL(qio_channel_command_new_spawn(argv, O_RDONLY, errp));
 
     qio_channel_set_name(ioc, "external-snapshot-loadvm-outgoing");
 
@@ -3599,7 +3599,6 @@ static bool load_snapshot_external_mem(BlockDriverState *bs, const char *snap_na
         goto err;
     }
 
-    // qemu_system_reset(SHUTDOWN_CAUSE_SNAPSHOT_LOAD);
     mis->from_src_file = f;
 
     if (!yank_register_instance(MIGRATION_YANK_INSTANCE, errp)) {
@@ -3726,6 +3725,7 @@ bool load_snapshot_external(const char *snap_name, const char *vmstate,
 
     if(saved_vm_running) {
         vm_stop(RUN_STATE_RESTORE_VM);
+        qemu_system_reset(SHUTDOWN_CAUSE_SNAPSHOT_LOAD);
     }
 
     iterbdrvs = bdrvs;
