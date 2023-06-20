@@ -59,6 +59,10 @@ typedef struct TimersState {
     QEMUTimer *icount_rt_timer;
     QEMUTimer *icount_vm_timer;
     QEMUTimer *icount_warp_timer;
+
+    /* for stopping VM till next signal */
+    QEMUTimer *icount_master_timer_rt;
+    QEMUTimer *icount_master_timer_vm;
 } TimersState;
 
 extern TimersState timers_state;

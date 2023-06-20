@@ -28,6 +28,7 @@
 #include "qapi/error.h"
 #include "qemu/error-report.h"
 #include "exec/exec-all.h"
+#include "qemu/timer.h"
 #include "sysemu/cpus.h"
 #include "sysemu/qtest.h"
 #include "qemu/main-loop.h"
@@ -231,6 +232,33 @@ int64_t icount_round(int64_t count)
     return (count + (1 << shift) - 1) >> shift;
 }
 
+static int64_t last_clock_rt = 0;
+static int64_t last_clock_vm = 0;
+static void icount_master_tellme_clock(void *opaque)
+{
+    printf("VIRTUAL_RT:%li\n", last_clock_rt - qemu_clock_get_ns(QEMU_CLOCK_REALTIME));
+    printf("VIRTUAL_VM:%li\n", last_clock_vm - qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
+    printf("icount:%li\n", icount_get_raw());
+    last_clock_rt = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+    last_clock_vm = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
+    timer_mod(timers_state.icount_master_timer_vm,
+                   qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
+                   NANOSECONDS_PER_SECOND / 10);
+}
+
+static int64_t last_clock_rt_vm = 0;
+static int64_t last_clock_vm_vm = 0;
+static void icount_master_tellme_clock_vm(void *opaque) 
+{
+    printf("VIRTUAL_RT:%li\n", last_clock_rt_vm - qemu_clock_get_ns(QEMU_CLOCK_REALTIME));
+    printf("VIRTUAL_VM:%li\n", last_clock_vm_vm - qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
+    printf("icount:%li\n", icount_get_raw());
+    last_clock_rt_vm = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
+    last_clock_vm_vm = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
+    timer_mod(timers_state.icount_master_timer_rt,
+                   qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL_RT) + 1000);
+}
+   
 static void icount_warp_rt(void)
 {
     unsigned seq;
@@ -455,6 +483,18 @@ void icount_configure(QemuOpts *opts, Error **errp)
     }
 
     icount_align_option = align;
+
+    timers_state.icount_master_timer_vm = timer_new_ns(QEMU_CLOCK_VIRTUAL,
+                                        icount_master_tellme_clock, NULL);
+    timer_mod(timers_state.icount_master_timer_vm,
+                   qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
+                   NANOSECONDS_PER_SECOND / 10);
+
+    timers_state.icount_master_timer_rt = timer_new_ms(QEMU_CLOCK_VIRTUAL_RT,
+                                   icount_master_tellme_clock_vm, NULL);
+    timer_mod(timers_state.icount_master_timer_rt,
+                   qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL_RT) + 1000);
+ 
 
     if (time_shift >= 0) {
         timers_state.icount_time_shift = time_shift;
