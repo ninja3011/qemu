@@ -17,13 +17,26 @@
         pkgs.pkg-config
         pkgs.pixman
         pkgs.capstone
+        pkgs.libslirp
       ];
     };
 
     package.${system}.default = pkgs.stdenv.mkDerivation {
       name = "QEMU QFLex";
       src = ./.;
-      buildPhase = "./configure --target-list=aarch64-softmmu --disable-gtk --enable-sanitizers --enable-capstone && cd build && ninja && cd ..";
+      buildInputs = [
+        pkgs.gcc
+        pkgs.ninja
+        pkgs.glib
+        pkgs.pkg-config
+        pkgs.pixman
+        pkgs.capstone
+        pkgs.libslirp
+      ];
+      
+      buildPhase = ''
+        ./configure --target-list=aarch64-softmmu --disable-gtk --enable-sanitizers --enable-capstone && cd build && ninja && cd ..
+      '';
     };
 
   };
