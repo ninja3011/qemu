@@ -3396,6 +3396,11 @@ void qmp_snapshot_delete(const char *job_id,
 #include "io/channel-command.h"
 #include <unistd.h>
 
+#ifdef CONFIG_QFLEX
+#include "qflex/qflex.h"
+#include "qflex/libqflex/qflex-api.h"
+#endif
+
 const char *decompress_snap = "pbzip2 -d -c";
 const char *compress_snap = "pbzip2 -c";
 
@@ -3573,7 +3578,9 @@ static bool load_snapshot_external_mem(BlockDriverState *bs, const char *snap_na
 
     if(bs->backing && !strcmp(bs->backing->bs->filename, base_bdrv_filename)) {
         const char* backing_snap_name = g_path_get_basename(g_path_get_dirname(bs->backing->bs->filename));
-        load_snapshot_external_mem(bs->backing->bs, backing_snap_name, base_bdrv_filename, errp);
+        if (!load_snapshot_external_mem(bs->backing->bs, backing_snap_name, base_bdrv_filename, errp)) {
+            return false;
+        }
     }
  
     /* load the VM state (ram + devices) from separate file */
@@ -3699,6 +3706,15 @@ bool save_snapshot_external(const char *snap_name, const char *vmstate, bool has
         goto end;
     }
 
+#ifdef CONFIG_QFLEX
+    if (qflexState.config.is_timing || qflexState.config.is_trace) {
+        g_autoptr(GString) snap_path = g_string_new("");
+        char *dirpath = g_path_get_dirname(base_bdrv_filename);
+        g_string_append_printf(snap_path, "%s/%s", dirpath, snap_name);
+        qflex_sim_callbacks.qmp(QMP_FLEXUS_DOSAVE, snap_path->str);
+    }
+#endif
+
 end:
 //    bdrv_drain_all_end();
 
@@ -3745,6 +3761,12 @@ bool load_snapshot_external(const char *snap_name, const char *vmstate,
     if (!load_snapshot_external_mem(bs_snap, snap_name, base_bdrv_filename, errp)) {
         goto err_ret;
     }
+
+#ifdef CONFIG_QFLEX
+    if (qflexState.config.load_dir) {
+        qflex_sim_callbacks.qmp(QMP_FLEXUS_DOLOAD, qflexState.config.load_dir);
+    }
+#endif
 
 
     return true;

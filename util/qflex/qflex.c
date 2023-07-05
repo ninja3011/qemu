@@ -36,6 +36,7 @@ QflexState_t qflexState = {
         .config_path = NULL,
         .sim_path = NULL,
         .debug_mode = NULL,
+        .load_dir = NULL,
         .is_trace = false,
         .is_timing = false,
     },

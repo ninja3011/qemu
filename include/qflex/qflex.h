@@ -17,6 +17,7 @@ typedef struct QflexConfig_t {
     const char *config_path;
     const char *sim_path;
     const char *debug_mode;
+    const char *load_dir;
     bool is_trace;
     bool is_timing;
 } QflexConfig_t;
