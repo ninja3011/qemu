@@ -455,7 +455,13 @@ uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn) {
 
 void qemu_plugin_set_running_flag(bool is_running) {
     CPUState *cpu = current_cpu;
-    qatomic_set(&cpu->running, is_running);
+    if (is_running) {
+        // set the running flag to true, and also toggle the pending_list.
+        cpu_exec_start(cpu);
+    } else {
+        // set the running flag to false, and remove this core self from the pending list.
+        cpu_exec_end(cpu);
+    }
 }
 
 #ifdef CONFIG_QFLEX
