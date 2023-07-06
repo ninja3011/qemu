@@ -668,6 +668,21 @@ uint64_t qemu_plugin_entry_code(void);
 bool     qemu_plugin_is_userland(const struct qemu_plugin_insn *insn);
 uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn);
 
+/**
+ * qemu_plugin_set_running_flag() - setting the "running" flag of the current CPU
+ * 
+ * @is_running: The value of the flag.
+ * 
+ * Some synchronization mechanism (e.g., exclusive execution) checks 
+ * this flag to make sure all CPUs are not executing instructions and 
+ * wait for all CPUs to be idle.
+ *  
+ * In you plugin are using locks and synchronization which can block 
+ * execution, you should set the running flag to false before being 
+ * blocked to avoid deadlocks.
+ */
+void qemu_plugin_set_running_flag(bool is_running);
+
 #ifdef CONFIG_QFLEX
 #ifdef PLUGIN
 #include "qflex-api.h"

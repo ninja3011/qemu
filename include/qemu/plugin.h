@@ -318,6 +318,7 @@ static inline void qemu_plugin_vcpu_is_userland(CPUState *cpu)
 static inline void qemu_plugin_vcpu_get_asid(CPUState *cpu)
 { }
 
+
 #endif /* !CONFIG_PLUGIN */
 
 #endif /* QEMU_PLUGIN_H */

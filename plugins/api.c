@@ -453,6 +453,11 @@ uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn) {
     return qemu_plugin_vcpu_get_asid(cpu);
 }
 
+void qemu_plugin_set_running_flag(bool is_running) {
+    CPUState *cpu = current_cpu;
+    qatomic_set(&cpu->running, is_running);
+}
+
 #ifdef CONFIG_QFLEX
 #include "qflex/libqflex/qflex-api.h"
 #include "qflex/qflex-arch.h"
