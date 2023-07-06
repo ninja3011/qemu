@@ -18,6 +18,7 @@
         pkgs.pixman
         pkgs.capstone
         pkgs.libslirp
+        pkgs.libgcrypt
       ];
     };
 
