@@ -33,6 +33,18 @@
 #include "translate-a64.h"
 #include "fpu/softfloat.h"
 
+#ifdef CONFIG_QFLEX
+#include "qflex/qflex-traces.h"
+#include "qflex/custom-instrumentation.h"
+#define GEN_HELPER(func)  glue(gen_helper_, func)
+#define GEN_QFLEX_HELPER(cond, func) if(cond) func
+#define GEN_QFLEX(statement) statement
+#else
+#define GEN_HELPER(func)
+#define GEN_QFLEX_HELPER(cond, func)
+#define GEN_QFLEX(statement)
+#endif // CONFIG_QFLEX
+
 
 typedef void GVecGen2sFn(unsigned, uint32_t, uint32_t,
                          TCGv_i64, uint32_t, uint32_t);
@@ -4178,7 +4190,6 @@ TRANS_FEAT(UCVTF_dd, aa64_sve, gen_gvec_fpst_arg_zpz,
 void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
                  int len, int rn, int imm)
 {
-    assert(false); // TODO: DevteroFlex doesn't support this
     int len_align = QEMU_ALIGN_DOWN(len, 8);
     int len_remain = len % 8;
     int nparts = len / 8 + ctpop8(len_remain);
@@ -4201,7 +4212,11 @@ void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
 
         t0 = tcg_temp_new_i64();
         for (i = 0; i < len_align; i += 8) {
+	        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
             tcg_gen_qemu_ld_i64(t0, clean_addr, midx, MO_LEUQ);
+            GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
             tcg_gen_st_i64(t0, base, vofs + i);
             tcg_gen_addi_i64(clean_addr, clean_addr, 8);
         }
@@ -4213,14 +4228,18 @@ void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
         gen_set_label(loop);
 
         t0 = tcg_temp_new_i64();
+	    GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
         tcg_gen_qemu_ld_i64(t0, clean_addr, midx, MO_LEUQ);
+        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
         tcg_gen_addi_i64(clean_addr, clean_addr, 8);
 
         tp = tcg_temp_new_ptr();
         tcg_gen_add_ptr(tp, base, i);
         tcg_gen_addi_ptr(i, i, 8);
         tcg_gen_st_i64(t0, tp, vofs);
-
+ 
         tcg_gen_brcondi_ptr(TCG_COND_LTU, i, len_align, loop);
     }
 
@@ -4234,16 +4253,24 @@ void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
         case 2:
         case 4:
         case 8:
+	        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32(1 << ((MO_LE | ctz32(len_remain)) & MO_SIZE))));
             tcg_gen_qemu_ld_i64(t0, clean_addr, midx,
                                 MO_LE | ctz32(len_remain));
+            GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32(1 << ((MO_LE | ctz32(len_remain)) & MO_SIZE))));
             break;
 
         case 6:
+	        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32((MO_32 + MO_16) & MO_SIZE)));
             t1 = tcg_temp_new_i64();
             tcg_gen_qemu_ld_i64(t0, clean_addr, midx, MO_LEUL);
             tcg_gen_addi_i64(clean_addr, clean_addr, 4);
             tcg_gen_qemu_ld_i64(t1, clean_addr, midx, MO_LEUW);
             tcg_gen_deposit_i64(t0, t0, t1, 32, 32);
+            GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_LOAD), tcg_constant_i32((MO_32 + MO_16) & MO_SIZE)));
             break;
 
         default:
@@ -4257,7 +4284,6 @@ void gen_sve_ldr(DisasContext *s, TCGv_ptr base, int vofs,
 void gen_sve_str(DisasContext *s, TCGv_ptr base, int vofs,
                  int len, int rn, int imm)
 {
-    assert(false); // TODO: DevteroFlex doesn't support this
     int len_align = QEMU_ALIGN_DOWN(len, 8);
     int len_remain = len % 8;
     int nparts = len / 8 + ctpop8(len_remain);
@@ -4282,7 +4308,11 @@ void gen_sve_str(DisasContext *s, TCGv_ptr base, int vofs,
         t0 = tcg_temp_new_i64();
         for (i = 0; i < len_align; i += 8) {
             tcg_gen_ld_i64(t0, base, vofs + i);
+	        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
             tcg_gen_qemu_st_i64(t0, clean_addr, midx, MO_LEUQ);
+            GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
             tcg_gen_addi_i64(clean_addr, clean_addr, 8);
         }
     } else {
@@ -4298,7 +4328,12 @@ void gen_sve_str(DisasContext *s, TCGv_ptr base, int vofs,
         tcg_gen_ld_i64(t0, tp, vofs);
         tcg_gen_addi_ptr(i, i, 8);
 
+	    GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
         tcg_gen_qemu_st_i64(t0, clean_addr, midx, MO_LEUQ);
+        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+					 cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32(1 << (MO_LEUQ & MO_SIZE))));
+ 
         tcg_gen_addi_i64(clean_addr, clean_addr, 8);
 
         tcg_gen_brcondi_ptr(TCG_COND_LTU, i, len_align, loop);
@@ -4313,15 +4348,25 @@ void gen_sve_str(DisasContext *s, TCGv_ptr base, int vofs,
         case 2:
         case 4:
         case 8:
+	        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32(1 << ((MO_LE | ctz32(len_remain)) & MO_SIZE))));
             tcg_gen_qemu_st_i64(t0, clean_addr, midx,
                                 MO_LE | ctz32(len_remain));
+            GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32(1 << ((MO_LE | ctz32(len_remain)) & MO_SIZE))));
+ 
             break;
 
         case 6:
+ 
+	        GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_pre_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32((MO_32 + MO_16) & MO_SIZE)));
             tcg_gen_qemu_st_i64(t0, clean_addr, midx, MO_LEUL);
             tcg_gen_addi_i64(clean_addr, clean_addr, 4);
             tcg_gen_shri_i64(t0, t0, 32);
             tcg_gen_qemu_st_i64(t0, clean_addr, midx, MO_LEUW);
+            GEN_QFLEX_HELPER(qflex_mem_trace_gen_helper(), GEN_HELPER(qflex_post_mem)( 
+				cpu_env, clean_addr, tcg_constant_i32(MMU_DATA_STORE), tcg_constant_i32((MO_32 + MO_16) & MO_SIZE)));
             break;
 
         default:
