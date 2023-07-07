@@ -37,6 +37,7 @@
 #include "qemu/osdep.h"
 #include "qemu/plugin.h"
 #include "qemu/log.h"
+#include "sysemu/cpus.h"
 #include "tcg/tcg.h"
 #include "exec/exec-all.h"
 #include "exec/ram_addr.h"
@@ -462,6 +463,10 @@ void qemu_plugin_set_running_flag(bool is_running) {
         // set the running flag to false, and remove this core self from the pending list.
         cpu_exec_end(cpu);
     }
+}
+
+bool qemu_plugin_is_current_cpu_can_run(void) {
+    return cpu_can_run(current_cpu);
 }
 
 #ifdef CONFIG_QFLEX

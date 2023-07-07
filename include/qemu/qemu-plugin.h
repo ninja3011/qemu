@@ -683,6 +683,17 @@ uint16_t qemu_plugin_get_asid(const struct qemu_plugin_insn *insn);
  */
 void qemu_plugin_set_running_flag(bool is_running);
 
+
+/**
+ * qemu_plugin_is_current_cpu_can_run() - check whether the current CPU can 
+ * still continue to run instructions, i.e., not stopped by other threads like quitting.
+ * 
+ * Returns true if the current cpu can still run.
+ * 
+ * This function is a wrapper of function `cpu_can_run`.
+ */
+bool qemu_plugin_is_current_cpu_can_run(void);
+
 #ifdef CONFIG_QFLEX
 #ifdef PLUGIN
 #include "qflex-api.h"
