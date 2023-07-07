@@ -236,9 +236,9 @@ static int64_t last_clock_rt = 0;
 static int64_t last_clock_vm = 0;
 static void icount_master_tellme_clock(void *opaque)
 {
-    printf("VIRTUAL_RT:%li\n", last_clock_rt - qemu_clock_get_ns(QEMU_CLOCK_REALTIME));
-    printf("VIRTUAL_VM:%li\n", last_clock_vm - qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
-    printf("icount:%li\n", icount_get_raw());
+//    printf("VIRTUAL_RT:%li\n", last_clock_rt - qemu_clock_get_ns(QEMU_CLOCK_REALTIME));
+//    printf("VIRTUAL_VM:%li\n", last_clock_vm - qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
+//    printf("icount:%li\n", icount_get_raw());
     last_clock_rt = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
     last_clock_vm = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
     timer_mod(timers_state.icount_master_timer_vm,
@@ -250,9 +250,9 @@ static int64_t last_clock_rt_vm = 0;
 static int64_t last_clock_vm_vm = 0;
 static void icount_master_tellme_clock_vm(void *opaque) 
 {
-    printf("VIRTUAL_RT:%li\n", last_clock_rt_vm - qemu_clock_get_ns(QEMU_CLOCK_REALTIME));
-    printf("VIRTUAL_VM:%li\n", last_clock_vm_vm - qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
-    printf("icount:%li\n", icount_get_raw());
+//    printf("VIRTUAL_RT:%li\n", last_clock_rt_vm - qemu_clock_get_ns(QEMU_CLOCK_REALTIME));
+//    printf("VIRTUAL_VM:%li\n", last_clock_vm_vm - qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
+//    printf("icount:%li\n", icount_get_raw());
     last_clock_rt_vm = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
     last_clock_vm_vm = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
     timer_mod(timers_state.icount_master_timer_rt,
