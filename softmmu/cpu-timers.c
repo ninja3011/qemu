@@ -71,13 +71,25 @@ int64_t cpu_get_ticks(void)
     return ticks;
 }
 
+static void update_timer_budget(int64_t time_step) {
+    qatomic_add(&timers_state.vm_clock_remote_offset, time_step);
+}
+
 int64_t cpu_get_clock_locked(void)
 {
     int64_t time;
 
     time = timers_state.cpu_clock_offset;
     if (timers_state.cpu_ticks_enabled) {
+#if 1 /* TODO: CONFIG_FLAG Clock controlled by external source */
+        if (timers_state.vm_clock_remote_master_enable) {
+            time += qatomic_read(&timers_state.vm_clock_remote_offset);
+        } else {
+#endif
         time += get_clock();
+#if 1
+        }
+#endif 
     }
 
     return time;

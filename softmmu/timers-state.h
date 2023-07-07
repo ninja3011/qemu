@@ -63,6 +63,10 @@ typedef struct TimersState {
     /* for stopping VM till next signal */
     QEMUTimer *icount_master_timer_rt;
     QEMUTimer *icount_master_timer_vm;
+#if 1 /* TODO: Add CONFIG_FLAG */
+    bool vm_clock_remote_master_enable;
+    int64_t vm_clock_remote_offset;
+#endif
 } TimersState;
 
 extern TimersState timers_state;
