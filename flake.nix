@@ -19,6 +19,8 @@
         pkgs.capstone
         pkgs.libslirp
         pkgs.libgcrypt
+        pkgs.python3
+        pkgs.git
       ];
     };
 
