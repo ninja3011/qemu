@@ -71,9 +71,9 @@ int64_t cpu_get_ticks(void)
     return ticks;
 }
 
-static void update_timer_budget(int64_t time_step) {
-    qatomic_add(&timers_state.vm_clock_remote_offset, time_step);
-}
+// static void update_timer_budget(int64_t time_step) {
+//     qatomic_add(&timers_state.vm_clock_remote_offset, time_step);
+// }
 
 int64_t cpu_get_clock_locked(void)
 {

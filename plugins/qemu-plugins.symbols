@@ -46,6 +46,7 @@
   qemu_plugin_get_asid;
   qemu_plugin_set_running_flag;
   qemu_plugin_is_current_cpu_can_run;
+  qemu_plugin_advance_vm_time;
 #ifdef CONFIG_QFLEX
   qemu_plugin_qflex_get_callbacks;
   qemu_plugin_get_gpaddr;

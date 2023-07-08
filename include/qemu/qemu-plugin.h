@@ -694,6 +694,15 @@ void qemu_plugin_set_running_flag(bool is_running);
  */
 bool qemu_plugin_is_current_cpu_can_run(void);
 
+/**
+ * qemu_plugin_advance_vm_time() - advance VM time by a given bias, in nano second scale.
+ * 
+ * @advanced_value: The amount of time (in nano second) to add to the VM clock.
+ * 
+ * This function only has effect when timers_state.vm_clock_remote_master_enable is set to true. (See cpu-timer.c, line 85) 
+ */
+void qemu_plugin_advance_vm_time(int64_t advanced_value); 
+
 #ifdef CONFIG_QFLEX
 #ifdef PLUGIN
 #include "qflex-api.h"

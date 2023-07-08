@@ -46,6 +46,7 @@
 #ifndef CONFIG_USER_ONLY
 #include "qemu/plugin-memory.h"
 #include "hw/boards.h"
+#include "softmmu/timers-state.h"
 #else
 #include "qemu.h"
 #ifdef CONFIG_LINUX
@@ -467,6 +468,10 @@ void qemu_plugin_set_running_flag(bool is_running) {
 
 bool qemu_plugin_is_current_cpu_can_run(void) {
     return cpu_can_run(current_cpu);
+}
+
+void qemu_plugin_advance_vm_time(int64_t advanced_value) {
+    qatomic_add(&timers_state.vm_clock_remote_offset, advanced_value);
 }
 
 #ifdef CONFIG_QFLEX
