@@ -21,26 +21,10 @@
         pkgs.libgcrypt
         pkgs.python3
         pkgs.git
+        
+        pkgs.flex
+        pkgs.bison
       ];
     };
-
-    package.${system}.default = pkgs.stdenv.mkDerivation {
-      name = "QEMU QFLex";
-      src = ./.;
-      buildInputs = [
-        pkgs.gcc
-        pkgs.ninja
-        pkgs.glib
-        pkgs.pkg-config
-        pkgs.pixman
-        pkgs.capstone
-        pkgs.libslirp
-      ];
-      
-      buildPhase = ''
-        ./configure --target-list=aarch64-softmmu --disable-gtk --enable-sanitizers --enable-capstone && cd build && ninja && cd ..
-      '';
-    };
-
   };
 }
