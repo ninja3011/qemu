@@ -1,7 +1,7 @@
 {
   description = "A flake for building QEMU + QFlex";
 
-  inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
+  inputs.nixpkgs.url = "nixpkgs/nixos-23.05";
 
   outputs = { self, nixpkgs }: 
   let
@@ -9,6 +9,7 @@
     pkgs = import nixpkgs { inherit system; };
   in 
   {
+
     devShells.${system}.default = pkgs.mkShell {
       buildInputs = [
         pkgs.gcc
@@ -21,7 +22,12 @@
         pkgs.libgcrypt
         pkgs.python3
         pkgs.git
-        
+		    pkgs.pbzip2
+		    pkgs.cmake
+		    pkgs.glibc
+		    pkgs.boost170
+        pkgs.libdwarf
+
         pkgs.flex
         pkgs.bison
       ];
