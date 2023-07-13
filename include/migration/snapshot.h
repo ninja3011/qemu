@@ -63,7 +63,7 @@ bool delete_snapshot(const char *name,
 
 
 
-#if 1 // TODO snapshot flag
+#ifdef CONFIG_SNAPEXT 
 
 /**
  * save_snapshot_external: Save an internal snapshot.
@@ -105,6 +105,6 @@ bool load_snapshot_external(const char *snap_name, const char *vmstate,
 bool init_snapshot_external_tmp(Error **errp);
 
 
-#endif /* CONFIG_EXTERNAL_SNAP */
+#endif /* CONFIG_SNAPEXT */
 
-#endif
+#endif 

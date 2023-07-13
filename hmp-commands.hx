@@ -362,6 +362,8 @@ SRST
 ERST
 
 
+#ifdef CONFIG_SNAPEXT
+
     {
         .name       = "savevm-external",
         .args_type  = "name:s?",
@@ -407,6 +409,8 @@ ERST
         .cmd        = hmp_delvm,
         .command_completion = delvm_completion,
     },
+
+#endif
 
 SRST
 ``delvm`` *tag*

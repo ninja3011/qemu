@@ -3388,7 +3388,7 @@ void qmp_snapshot_delete(const char *job_id,
     job_start(&s->common);
 }
 
-#if 1  // TODO: Introduce new flag for external snapshots
+#ifdef CONFIG_SNAPEXT  // TODO: Introduce new flag for external snapshots
 
 #include "qapi/qapi-commands-block-core.h"
 #include "block/block_int-common.h"
@@ -3802,4 +3802,4 @@ bool init_snapshot_external_tmp(Error **errp) {
     return true;
 }
 
-#endif /* CONFIG_EXTENDED_SNAP */
+#endif /* CONFIG_SNAPEXT */

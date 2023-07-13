@@ -372,6 +372,8 @@ void hmp_savevm(Monitor *mon, const QDict *qdict)
     hmp_handle_error(mon, err);
 }
 
+#ifdef CONFIG_SNAPEXT 
+
 void hmp_loadvm_external(Monitor *mon, const QDict *qdict)
 {
     int saved_vm_running  = runstate_is_running();
@@ -394,6 +396,8 @@ void hmp_savevm_external(Monitor *mon, const QDict *qdict)
                   NULL, false, NULL, &err);
     hmp_handle_error(mon, err);
 }
+
+#endif
 
 void hmp_delvm(Monitor *mon, const QDict *qdict)
 {

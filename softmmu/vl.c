@@ -2626,6 +2626,7 @@ void qmp_x_exit_preconfig(Error **errp)
         replay_vmstate_init();
     }
 
+#ifdef CONFIG_SNAPEXT
     if(has_external_enabled) {
         init_snapshot_external_tmp(&error_fatal);
         if (loadvm) {
@@ -2633,6 +2634,7 @@ void qmp_x_exit_preconfig(Error **errp)
                                    &error_fatal);
         } 
     }
+#endif
 
     if (incoming) {
         Error *local_err = NULL;
