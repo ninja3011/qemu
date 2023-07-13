@@ -310,6 +310,7 @@ xen=${default_feature:+disabled}
 ######################
 # QFLEX
 qflex="no"
+snapext="no"
 ######################
 
 # parse CC options second
@@ -909,6 +910,10 @@ for opt do
   ;;
   --enable-qflex) qflex="yes"
   ;;
+  --disable-snapext) snapext="no"
+  ;;
+  --enable-snapext) snapext="yes"
+  ;;
 ######################
   # everything else has the same name in configure and meson
   --*) meson_option_parse "$opt" "$optarg"
@@ -1067,6 +1072,7 @@ cat << EOF
 ######################
 # QFLEX
   qflex           support for QFlex
+  snapext         support for external and incremental snapshots
 ######################
 NOTE: The object files are built at the place where configure is launched
 EOF
@@ -2287,6 +2293,14 @@ fi
 if test $qflex = "yes" ; then
   QEMU_CFLAGS="-DCONFIG_QFLEX $QEMU_CFLAGS"
   libqflex="-ldl"
+fi
+if test $snapext = "yes" ; then
+  QEMU_CFLAGS="-DCONFIG_SNAPEXT $QEMU_CFLAGS"
+  has_pbzip2=$(command -v "pbzip2" &> /dev/null)
+  if test -z "$has_pbzip2"; then
+      echo "pbzip2 could not be found"
+      exit
+  fi
 fi
 
 ##########################################
