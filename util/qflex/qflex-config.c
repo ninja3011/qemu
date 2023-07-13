@@ -104,7 +104,7 @@ static void qflex_configure(QemuOpts *opts, Error **errp) {
     } else {
         qflexState.config.is_timing = strcmp(mode_opt, "timing") == 0;
         qflexState.config.is_trace = strcmp(mode_opt, "trace") == 0;
-        if (!(qflexState.config.is_timing || qflexState.config.is_trace == 0)) {
+        if (!(qflexState.config.is_timing || qflexState.config.is_trace)) {
           error_setg(errp, "argument for `mode=(trace|timing)` is wrong: %s\n",
                      mode_opt);
           error |= 1;
@@ -156,10 +156,6 @@ void qflex_init(Error **errp) {
         }
     }
    
-    if (error) {
-        exit(EXIT_FAILURE);
-    }
-
     // Load QFlex library
     bool success = flexus_dynlib_load(qflexState.config.sim_path);
     if (success) {
@@ -168,6 +164,10 @@ void qflex_init(Error **errp) {
     } else {
         error_report("ERROR:simulator could not be set.!.\n");
         error |= 1;
+    }
+
+    if (error) {
+        exit(EXIT_FAILURE);
     }
 
     // Init QFlex values
