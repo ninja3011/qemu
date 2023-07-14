@@ -7,12 +7,12 @@
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
+    boost = pkgs.boost.override { stdenv = pkgs.gcc10Stdenv; };
   in 
   {
 
-    devShells.${system}.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell.override { stdenv = pkgs.gcc10Stdenv; } {
       buildInputs = [
-        pkgs.gcc
         pkgs.ninja
         pkgs.glib
         pkgs.pkg-config
@@ -22,10 +22,9 @@
         pkgs.libgcrypt
         pkgs.python3
         pkgs.git
-		    pkgs.pbzip2
-		    pkgs.cmake
-		    pkgs.glibc
-		    pkgs.boost170
+	      pkgs.pbzip2
+	      pkgs.cmake
+	      boost
         pkgs.libdwarf
 
         pkgs.flex
