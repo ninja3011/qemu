@@ -4378,6 +4378,7 @@ SRST
     Start right away with a saved state (``loadvm`` in monitor)
 ERST
 
+#ifdef CONFIG_SNAPEXT
 DEF("loadvm-external", HAS_ARG, QEMU_OPTION_loadvm_external, \
     "-loadvm-external [snap-name]\n" \
     "                start right away with a saved state (loadvm in monitor)\n",
@@ -4393,7 +4394,7 @@ DEF("snapvm-external", 0, QEMU_OPTION_snapvm_external, \
 SRST
 ``-snapvm-external``
 ERST
-
+#endif // CONFIG_SNAPEXT
 
 
 #ifndef _WIN32
