@@ -1,5 +1,5 @@
 {
-  description = "A flake for building QEMU + QFlex";
+  description = "A flake for building QEMU";
 
   inputs.nixpkgs.url = "nixpkgs/nixos-23.05";
 
@@ -7,11 +7,10 @@
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
-    boost = pkgs.boost.override { stdenv = pkgs.gcc10Stdenv; };
   in 
   {
 
-    devShells.${system}.default = pkgs.mkShell.override { stdenv = pkgs.gcc10Stdenv; } {
+    devShells.${system}.default = pkgs.mkShell.override { } {
       buildInputs = [
         pkgs.ninja
         pkgs.glib
@@ -22,10 +21,7 @@
         pkgs.libgcrypt
         pkgs.python3
         pkgs.git
-	      pkgs.pbzip2
-	      pkgs.cmake
-	      boost
-        pkgs.libdwarf
+	    pkgs.pbzip2
 
         pkgs.flex
         pkgs.bison

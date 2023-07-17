@@ -24,3 +24,4 @@ GTAGS
 .vscode/clang-format
 .vscode/
 .cache
+flake.lock
