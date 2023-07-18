@@ -543,6 +543,16 @@ uint16_t qemu_plugin_vcpu_get_asid(CPUState *cpu) {
     return HELPER(vcpu_get_asid)(cpu);
 }
 
+bool qemu_plugin_is_enabled_flag = false;
+
+bool qemu_plugin_is_enabled(void) {
+    return qemu_plugin_is_enabled_flag;
+}
+
+void qemu_plugin_is_enabled_set(bool flag) {
+    qemu_plugin_is_enabled_flag = flag;
+}
+
 /*
  * Helpers for *-user to ensure locks are sane across fork() events.
  */

@@ -29,6 +29,7 @@
 // OP TYPES
 #define QFLEX_OP (90)
 #define MEM_TRACE_OP      (91)
+#define PLUGIN_TRACE_OP   (92)
 
 // QFLEX OPs
 #define QFLEX_SINGLESTEP_START (90)
@@ -40,6 +41,10 @@
 #define MEM_TRACE_STOP    (91)
 #define MEM_TRACE_RESULTS (92)
 #define MEM_TRACE_START_INST (93)
+
+// PLUGIN_TRACE OPs
+#define PLUGIN_TRACE_START (90)
+#define PLUGIN_TRACE_STOP  (91)
 
 // ---- Executing helpers inside QEMU ---- //
 

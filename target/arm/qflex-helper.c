@@ -32,6 +32,7 @@
  *
  */
 #include "qflex/qflex-qemu-calls.h"
+#include "qemu/plugin.h"
 static uint64_t prev_nop_op = 0;
 
 static inline void qflex_mem_trace_cmds(CPUState *cs, uint64_t nop_op) {
@@ -48,6 +49,14 @@ static inline void qflex_cmds(CPUState *cs, uint64_t nop_op) {
         case QFLEX_SINGLESTEP_START: qflexState.singlestep = true; break;
         case QFLEX_SINGLESTEP_STOP: qflexState.singlestep = false; break;
         case QFLEX_PRINT_ASID_TID:  qflex_print_state_asid_tid(cs); break;
+        default: break;
+    }
+}
+
+static inline void plugin_trace_cmds(CPUState *cs, uint64_t nop_op) {
+    switch(nop_op) {
+        case PLUGIN_TRACE_START: qemu_plugin_is_enabled_set(true); break;
+        case PLUGIN_TRACE_STOP: qemu_plugin_is_enabled_set(false); break;
         default: break;
     }
 }
@@ -73,6 +82,11 @@ void HELPER(qflex_magic_inst)(CPUARMState *env, uint64_t nop_op) {
             prev_nop_op = 0;
             return; // HELPER EXIT
 
+        case PLUGIN_TRACE_OP:
+            plugin_trace_cmds(cs, nop_op);
+            prev_nop_op =0;
+            return; // HELPER_EXIT
+
         default: break;
     }
 
@@ -83,6 +97,7 @@ void HELPER(qflex_magic_inst)(CPUARMState *env, uint64_t nop_op) {
  #endif
         case QFLEX_OP:
         case MEM_TRACE_OP: 
+        case PLUGIN_TRACE_OP:
             prev_nop_op = nop_op; 
             break;
         default: prev_nop_op = 0; break;
